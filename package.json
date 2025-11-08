@@ -1,0 +1,31 @@
+{
+  "name": "atprot-examples",
+  "version": "1.0.0",
+  "description": "TypeScript test cases for exploring AT Protocol",
+  "type": "module",
+  "scripts": {
+    "setup": "tsx scripts/setup.ts",
+    "create-account": "tsx examples/create-account.ts",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts"
+  },
+  "keywords": ["atproto", "bluesky", "testing"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@vitest/ui": "^1.0.4",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4",
+    "tsx": "^4.7.0"
+  },
+  "dependencies": {
+    "@atproto/api": "^0.12.0",
+    "@atproto/repo": "^0.4.0",
+    "@atproto/xrpc": "^0.5.0",
+    "dotenv": "^16.3.1"
+  }
+}
