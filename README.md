@@ -109,6 +109,23 @@ npm test -- tests/01-authentication.test.ts
 - [tests/07-sync-operations.test.ts](tests/07-sync-operations.test.ts) - Repo sync, blob management
 - [tests/08-advanced-features.test.ts](tests/08-advanced-features.test.ts) - Feeds, lists, moderation
 
+## Directory Sync to Blob Store
+
+📦 **NEW**: Sync entire directories to the AT Protocol blob store!
+
+```bash
+# Upload a directory
+npm run sync upload ./my-documents
+
+# List synced directories
+npm run sync list
+
+# Download (manifest-based restoration)
+npm run sync download my-documents-manifest.json ./restored
+```
+
+See [DIRECTORY_SYNC.md](DIRECTORY_SYNC.md) for full documentation.
+
 ## Examples
 
 ### Basic Post

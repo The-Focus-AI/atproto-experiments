@@ -6,6 +6,7 @@
   "scripts": {
     "setup": "tsx scripts/setup.ts",
     "create-account": "tsx examples/create-account.ts",
+    "sync": "tsx examples/directory-sync.ts",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

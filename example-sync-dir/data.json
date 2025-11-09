@@ -1,0 +1,10 @@
+{
+  "project": "AT Protocol Directory Sync",
+  "version": "1.0.0",
+  "features": [
+    "Upload entire directories",
+    "Track files with manifests",
+    "Download and restore"
+  ],
+  "timestamp": "2025-11-08T21:54:00.000Z"
+}
