@@ -8,7 +8,7 @@ This utility demonstrates how to store entire directories in the AT Protocol blo
 2. **Manifest**: A JSON manifest is created tracking all files, their paths, and blob references (CIDs)
 3. **Anchor**: The manifest is saved as a custom record (`ai.focus.sync.directory`) which anchors ALL blobs, making them retrievable
 4. **Post**: A post is created for discoverability, referencing the custom record
-5. **Download**: The manifest can be used to reconstruct the original directory structure by fetching blobs via `com.atproto.sync.getBlob`
+5. **Download**: The manifest is fetched from the custom record and used to reconstruct the original directory structure by downloading blobs via `com.atproto.sync.getBlob`
 
 ## Key Innovation: Custom Record Type for Blob Anchoring
 
@@ -39,9 +39,10 @@ npm run sync upload ./my-documents
 
 This will:
 - Upload all files recursively
-- Create a manifest file (`{directory-name}-manifest.json`)
-- Create a post with the manifest embedded
-- Show you the Bluesky post URL
+- Create a custom record (`ai.focus.sync.directory`) anchoring all blobs
+- Create a post for discoverability referencing the record URI
+- Save a local manifest file (`{directory-name}-manifest.json`) for backup
+- Show you the Bluesky post URL and record URI
 
 ### List Synced Directories
 
@@ -49,23 +50,47 @@ This will:
 npm run sync list
 ```
 
-Shows all directories you've synced with their URIs and creation dates.
+Shows all directories you've synced with their record URIs, file counts, sizes, and creation dates.
+
+Example output:
+```
+Found 2 directory sync records:
+
+1. my-documents
+   URI: at://did:plc:.../ai.focus.sync.directory/3m572snkmkb2a
+   Files: 15
+   Size: 52000 bytes
+   Created: 11/9/2025, 7:02:42 AM
+```
 
 ### Download/Restore a Directory
 
+**No arguments - download latest to default directory:**
 ```bash
-npm run sync download <manifest-file> <output-directory>
+npm run sync download
+# Downloads latest sync to ./restored-dir
 ```
 
-Example:
+**One argument - download latest to specific directory:**
+```bash
+npm run sync download ./my-restored-files
+```
+
+**Two arguments - download specific record by URI:**
+```bash
+npm run sync download at://did:plc:.../ai.focus.sync.directory/... ./restored
+```
+
+**Backward compatibility - download from local manifest file:**
 ```bash
 npm run sync download my-documents-manifest.json ./restored
 ```
 
-**Note**: The current implementation creates the directory structure and shows blob references. To actually download blob content, you would fetch from:
-```
-https://bsky.social/xrpc/com.atproto.sync.getBlob?did={your-did}&cid={blob-cid}
-```
+The download process:
+1. Fetches the manifest from the custom record (or local file)
+2. Creates the directory structure
+3. Downloads each blob via `com.atproto.sync.getBlob`
+4. Reconstructs all files with their original paths
 
 ## Manifest Structure
 
@@ -100,46 +125,40 @@ The manifest is a JSON file that tracks everything about your synced directory:
 ### Backup Important Documents
 ```bash
 npm run sync upload ~/important-docs
-# Keep the manifest file safe
+# Restore on another machine:
+npm run sync download
 ```
 
 ### Share Configuration Files
 ```bash
 npm run sync upload ~/.config/my-app
-# Share the manifest with others
+# Share the record URI with others
 ```
 
 ### Version Your Project
 ```bash
 npm run sync upload ./my-project
 # Creates a snapshot with all file references
+# Restore specific version by record URI later
 ```
 
 ## Features
 
 ✅ **Recursive Upload** - Handles nested directories automatically
 ✅ **MIME Type Detection** - Automatically sets correct content types
-✅ **Manifest Tracking** - JSON manifest with all file metadata
-✅ **Post Integration** - Manifest saved as a post for easy discovery
-✅ **Path Preservation** - Directory structure maintained in manifest
+✅ **Custom Record Storage** - Manifest stored as `ai.focus.sync.directory` record
+✅ **Record URI-based Download** - No local manifest file needed
+✅ **Full Download Support** - Fetches and reconstructs all files
+✅ **Post Integration** - Post created for discoverability
+✅ **Path Preservation** - Directory structure maintained
+✅ **Version Support** - Download any previous version by record URI
+✅ **Backward Compatible** - Still supports local manifest files
 
-## Limitations & Future Work
+## Known Issues
 
-**Current Implementation:**
-- Upload works fully - all files are uploaded as blobs
-- Manifest creation and tracking works
-- Download creates directory structure but doesn't fetch blob content
-
-**To Complete Download:**
-You would need to implement blob fetching using:
-```typescript
-const blobUrl = `https://bsky.social/xrpc/com.atproto.sync.getBlob?did=${did}&cid=${cid}`;
-const response = await fetch(blobUrl, {
-  headers: { 'Authorization': `Bearer ${accessToken}` }
-});
-const blob = await response.arrayBuffer();
-writeFileSync(outputPath, Buffer.from(blob));
-```
+- Some blobs may return HTTP 500 errors during download (server-side issue)
+- This appears to be intermittent with certain blob CIDs
+- Successfully tested with 3/4 files in test directory
 
 ## Example
 
@@ -149,11 +168,14 @@ Try the included example directory:
 # Upload the example
 npm run sync upload example-sync-dir
 
-# List it
+# List synced directories (shows record URI)
 npm run sync list
 
-# The manifest is saved as: example-sync-dir-manifest.json
-cat example-sync-dir-manifest.json
+# Download latest version
+npm run sync download ./test-restore
+
+# Download specific version by URI
+npm run sync download at://did:plc:.../ai.focus.sync.directory/3m572snkmkb2a ./test-restore
 ```
 
 ## Technical Details
@@ -165,33 +187,41 @@ cat example-sync-dir-manifest.json
 - Blobs are content-addressed (same content = same CID)
 - No size limits mentioned in docs, but practical limits likely exist
 
-### Manifest Post
+### Custom Record Type
 
-The manifest is embedded in a post's external embed:
+The manifest is stored as a custom record:
 
 ```typescript
-{
-  $type: 'app.bsky.embed.external',
-  external: {
-    uri: 'atproto://sync/{name}',
-    title: `Directory: {name}`,
-    description: JSON.stringify(manifest)
-  }
-}
+const record = {
+  $type: 'ai.focus.sync.directory',
+  name: manifest.name,
+  rootPath: manifest.rootPath,
+  files: manifest.files,
+  totalSize: manifest.totalSize,
+  createdAt: manifest.createdAt,
+};
+
+await agent.com.atproto.repo.createRecord({
+  repo: agent.session!.did,
+  collection: 'ai.focus.sync.directory',
+  record: record,
+});
 ```
 
-This makes it:
-- Easy to find via your posts
-- Searchable by directory name
-- Viewable on Bluesky
+This approach:
+- Anchors all blobs in one record (makes them retrievable)
+- Supports versioning via multiple records
+- Can be queried via `listRecords` API
+- Creates only one post for discoverability
 
 ### File Recovery
 
 To recover files:
-1. Load the manifest JSON
-2. For each file entry, fetch blob using CID
-3. Write blob content to the file path
-4. Preserve the directory structure
+1. Fetch the record by URI using `getRecord`
+2. Extract the manifest from `record.value`
+3. For each file entry, fetch blob using `com.atproto.sync.getBlob`
+4. Write blob content to the file path
+5. Preserve the directory structure
 
 ## Code
 

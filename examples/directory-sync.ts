@@ -156,10 +156,51 @@ async function saveManifest(agent: BskyAgent, manifest: DirectoryManifest): Prom
   return recordResult.data.uri;
 }
 
-async function loadManifest(manifestPath: string): Promise<DirectoryManifest> {
-  console.log(`\n📖 Loading manifest from: ${manifestPath}`);
+async function loadManifestFromFile(manifestPath: string): Promise<DirectoryManifest> {
+  console.log(`\n📖 Loading manifest from local file: ${manifestPath}`);
   const data = readFileSync(manifestPath, 'utf-8');
   return JSON.parse(data);
+}
+
+async function loadManifestFromRecord(agent: BskyAgent, recordUri: string): Promise<DirectoryManifest> {
+  console.log(`\n📖 Loading manifest from record: ${recordUri}`);
+
+  // Parse AT URI: at://did:plc:abc123/ai.focus.sync.directory/abc123
+  const uriParts = recordUri.replace('at://', '').split('/');
+  const repo = uriParts[0];
+  const collection = uriParts.slice(1, -1).join('.'); // Join all parts between repo and rkey
+  const rkey = uriParts[uriParts.length - 1];
+
+  // Fetch the record
+  const record = await agent.api.com.atproto.repo.getRecord({
+    repo,
+    collection,
+    rkey,
+  });
+
+  console.log(`✅ Loaded manifest: ${record.data.value.name}`);
+
+  return record.data.value as DirectoryManifest;
+}
+
+async function getLatestManifest(agent: BskyAgent): Promise<DirectoryManifest> {
+  console.log('\n🔍 Finding latest directory sync record...');
+
+  const records = await agent.api.com.atproto.repo.listRecords({
+    repo: agent.session!.did,
+    collection: 'ai.focus.sync.directory',
+    limit: 1,
+    reverse: true, // Get most recent first
+  });
+
+  if (records.data.records.length === 0) {
+    throw new Error('No directory sync records found');
+  }
+
+  const record = records.data.records[0];
+  console.log(`✅ Found: ${record.value.name} (${record.uri})`);
+
+  return record.value as DirectoryManifest;
 }
 
 async function downloadDirectory(agent: BskyAgent, manifest: DirectoryManifest, outputDir: string) {
@@ -248,41 +289,58 @@ async function main() {
 
     console.log('\n✨ Upload complete!');
     console.log(`\nTo restore later, run:`);
-    console.log(`  tsx examples/directory-sync.ts download ${manifest.name}-manifest.json ./restored`);
+    console.log(`  tsx examples/directory-sync.ts download ./restored`);
 
   } else if (command === 'download') {
-    if (!path || !outputDir) {
-      console.error('Usage: tsx examples/directory-sync.ts download <manifest-file> <output-directory>');
-      process.exit(1);
+    let manifest: DirectoryManifest;
+
+    // Determine if we have a source (URI/file) and/or output directory
+    if (!path) {
+      // No args - use latest and default output dir
+      manifest = await getLatestManifest(agent);
+      await downloadDirectory(agent, manifest, './restored-dir');
+    } else if (!outputDir) {
+      // One arg - could be output dir or source
+      if (path.startsWith('at://') || (existsSync(path) && path.endsWith('.json'))) {
+        // It's a source, need output dir
+        console.error('Usage: tsx examples/directory-sync.ts download [record-uri|manifest-file] <output-directory>');
+        process.exit(1);
+      } else {
+        // It's an output dir - use latest record
+        manifest = await getLatestManifest(agent);
+        await downloadDirectory(agent, manifest, path);
+      }
+    } else {
+      // Both args provided
+      if (path.startsWith('at://')) {
+        // It's a record URI
+        manifest = await loadManifestFromRecord(agent, path);
+      } else {
+        // It's a local file (backward compatibility)
+        manifest = await loadManifestFromFile(path);
+      }
+      await downloadDirectory(agent, manifest, outputDir);
     }
 
-    const manifest = await loadManifest(path);
-    await downloadDirectory(agent, manifest, outputDir);
-
   } else if (command === 'list') {
-    // List all directory sync posts
-    console.log('\n📋 Listing directory sync posts...');
+    // List all directory sync records
+    console.log('\n📋 Listing directory sync records...');
 
-    const posts = await agent.api.com.atproto.repo.listRecords({
+    const records = await agent.api.com.atproto.repo.listRecords({
       repo: agent.session!.did,
-      collection: 'app.bsky.feed.post',
+      collection: 'ai.focus.sync.directory',
       limit: 50,
     });
 
-    const syncPosts = posts.data.records.filter((record: any) => {
-      const text = record.value?.text || '';
-      return text.includes('📁 Directory Sync:');
-    });
+    console.log(`\nFound ${records.data.records.length} directory sync records:\n`);
 
-    console.log(`\nFound ${syncPosts.length} directory sync posts:\n`);
-
-    syncPosts.forEach((post: any, index: number) => {
-      const text = post.value.text;
-      const match = text.match(/📁 Directory Sync: (.+)/);
-      const name = match ? match[1].split('\n')[0] : 'Unknown';
-      console.log(`${index + 1}. ${name}`);
-      console.log(`   URI: ${post.uri}`);
-      console.log(`   Created: ${new Date(post.value.createdAt).toLocaleString()}`);
+    records.data.records.forEach((record: any, index: number) => {
+      const value = record.value;
+      console.log(`${index + 1}. ${value.name}`);
+      console.log(`   URI: ${record.uri}`);
+      console.log(`   Files: ${value.files?.length || 0}`);
+      console.log(`   Size: ${value.totalSize || 0} bytes`);
+      console.log(`   Created: ${new Date(value.createdAt).toLocaleString()}`);
       console.log('');
     });
 
@@ -295,7 +353,7 @@ Usage:
     tsx examples/directory-sync.ts upload <directory-path>
 
   Download a directory:
-    tsx examples/directory-sync.ts download <manifest-file> <output-directory>
+    tsx examples/directory-sync.ts download [record-uri] <output-directory>
 
   List synced directories:
     tsx examples/directory-sync.ts list
@@ -304,20 +362,28 @@ Examples:
   # Upload a directory
   tsx examples/directory-sync.ts upload ./my-documents
 
-  # Download using the generated manifest
-  tsx examples/directory-sync.ts download my-documents-manifest.json ./restored
+  # Download latest sync to ./restored-dir
+  tsx examples/directory-sync.ts download
+
+  # Download latest sync to specific directory
+  tsx examples/directory-sync.ts download ./my-restored-files
+
+  # Download specific record by URI
+  tsx examples/directory-sync.ts download at://did:plc:.../ai.focus.sync.directory/... ./restored
 
   # List all synced directories
   tsx examples/directory-sync.ts list
 
 How it works:
   1. Upload: Walks through directory, uploads each file as a blob
-  2. Manifest: Creates a JSON manifest with all blob references
-  3. Post: Saves manifest in a post for easy retrieval
-  4. Download: Uses manifest to reconstruct directory structure
+  2. Manifest: Creates a custom record (ai.focus.sync.directory) with all blob references
+  3. Anchor: Blobs are anchored to the record, making them retrievable
+  4. Download: Fetches manifest from record and reconstructs directory structure
 
-Note: Blob downloads require fetching from:
-  https://bsky.social/xrpc/com.atproto.sync.getBlob?did={did}&cid={cid}
+Note:
+  - Blobs are downloaded from: https://bsky.social/xrpc/com.atproto.sync.getBlob?did={did}&cid={cid}
+  - Record URIs from 'list' command can be used to download specific versions
+  - Backward compatible with local manifest files for legacy usage
     `);
   }
 }
