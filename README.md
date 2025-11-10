@@ -109,116 +109,23 @@ npm test -- tests/01-authentication.test.ts
 - [tests/07-sync-operations.test.ts](tests/07-sync-operations.test.ts) - Repo sync, blob management
 - [tests/08-advanced-features.test.ts](tests/08-advanced-features.test.ts) - Feeds, lists, moderation
 
-## Advanced Features
+## Examples
 
-### Directory Sync to Blob Store
+This project includes several standalone examples demonstrating advanced AT Protocol features:
 
-📦 Sync entire directories to the AT Protocol blob store with incremental upload!
+### 📁 [Directory Sync](directory-sync/)
+Sync entire directories to AT Protocol blob store with incremental uploads and web viewer.
 
-```bash
-# Upload a directory (only uploads new/modified files)
-npm run sync upload ./my-documents
+### 🔄 [PDS Sync](pds-sync/)
+Download and unpack your entire Personal Data Server repository.
 
-# List synced directories (shows record URIs)
-npm run sync list
+### 🔥 [Firehose](firehose/)
+Real-time media downloading from the Bluesky firehose.
 
-# Download latest sync to ./restored-dir (default)
-npm run sync download
+### 👤 [Account Creation](account/)
+Programmatic Bluesky account creation.
 
-# Download latest sync to specific directory
-npm run sync download ./my-restored-files
-
-# Download specific version by record URI
-npm run sync download at://did:plc:.../ai.focus.sync.directory/... ./restored
-```
-
-**Key Innovations:**
-- **Incremental Upload**: Calculates CIDs locally and only uploads changed files, saving bandwidth
-- **Custom Record Type**: Uses `ai.focus.sync.directory` to anchor all blobs, making them retrievable via the AT Protocol API
-- **No Local Manifest**: Download any version directly from the network using record URIs
-- **Web Viewer**: Interactive gallery/list viewer with shareable URLs - no server needed!
-
-```bash
-# Publish viewer template (one-time)
-npm run publish-viewer
-
-# Get shareable URL for any directory
-npm run viewer-url
-```
-
-The viewer loads directly from the blob store and displays all files with preview/download links. Anyone with the URL can view the files - no login required!
-
-See [DIRECTORY_SYNC.md](DIRECTORY_SYNC.md) for full documentation.
-
-### PDS Repository Sync
-
-🔄 Download and unpack your entire Personal Data Server repository!
-
-```bash
-# Full sync - downloads and unpacks everything (default)
-npm run pds-sync
-
-# The above creates an organized directory structure:
-#   pds-exports/repo-{handle}-{timestamp}/
-#     ├── _metadata.json                    # Export metadata
-#     ├── _complete.json                    # Complete export in one file
-#     ├── _blobs/                           # Downloaded blobs (images, files)
-#     │   ├── _index.json                   # Blob metadata
-#     │   ├── bafkre...                     # Individual blob files
-#     │   └── ...
-#     ├── app-bsky-feed-post/              # Posts directory
-#     │   ├── 1.json                       # Individual post records
-#     │   ├── 2.json
-#     │   └── ...
-#     ├── app-bsky-graph-follow/           # Follows directory
-#     └── ...                               # Other collections
-
-# Advanced usage:
-npm run pds-sync download                   # Just download CAR file
-npm run pds-sync list pds-exports/repo-*.car    # Just list contents
-npm run pds-sync unpack pds-exports/repo-*.car  # Just unpack
-npm run pds-sync did:plc:abc123            # Sync specific DID
-```
-
-Features:
-- ✅ **One command** downloads and unpacks everything
-- ✅ **Organized directories** - each collection in its own folder
-- ✅ **Individual JSON files** - one per record for easy browsing
-- ✅ **Blob downloading** - fetches all images, avatars, and custom blobs
-- ✅ **Complete export** - also saves everything in one JSON file
-- ✅ **Offline backup** - perfect for account migration or analysis
-- ✅ **Works with any DID** - defaults to your own repo
-
-### Firehose Blob Downloader
-
-🔥 Connect to the Bluesky firehose and download images and videos in real-time!
-
-```bash
-# Download all media to default directory (./firehose-blobs)
-npm run firehose
-
-# Specify custom output directory
-npm run firehose ./my-blobs
-
-# Download only first 50 blobs
-npm run firehose -- --limit=50
-
-# Download only images (skip videos)
-npm run firehose -- --images-only
-
-# Download only videos (skip images)
-npm run firehose -- --videos-only
-```
-
-Features:
-- Real-time streaming from Bluesky's firehose using `@atproto/sync`
-- Automatically detects and downloads images (JPEG, PNG, GIF, WebP)
-- Automatically detects and downloads videos (MP4, WebM, MOV)
-- Saves metadata for each blob (post URL, CID, MIME type, etc.)
-- Organized output: separate directories for images and videos
-- Duplicate detection to avoid re-downloading
-- Live statistics and progress tracking
-- Graceful shutdown with Ctrl+C
+See each folder's README for detailed documentation.
 
 ## Examples
 
