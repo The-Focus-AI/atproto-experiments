@@ -99,16 +99,62 @@ npm run sync download ./my-restored-files
 npm run sync download at://did:plc:.../ai.focus.sync.directory/... ./restored
 ```
 
-**Backward compatibility - download from local manifest file:**
-```bash
-npm run sync download my-documents-manifest.json ./restored
-```
-
 The download process:
-1. Fetches the manifest from the custom record (or local file)
+1. Fetches the manifest from the custom record
 2. Creates the directory structure
 3. Downloads each blob via `com.atproto.sync.getBlob`
 4. Reconstructs all files with their original paths
+
+### View Files in Browser
+
+**Option 1: Interactive Web Viewer (Recommended)**
+
+Upload the viewer template once and generate shareable URLs for any directory:
+
+```bash
+# One-time: Publish the viewer template to the blob store
+npm run publish-viewer
+
+# Generate shareable URL for latest sync
+npm run viewer-url
+
+# Generate shareable URL for specific record
+npm run viewer-url at://did:plc:.../ai.focus.sync.directory/...
+```
+
+The viewer features:
+- **Gallery view** with image thumbnails and lightbox
+- **List view** with file details
+- **Direct preview** for images, text, JSON, HTML, PDF
+- **Download buttons** for all files
+- **No login required** - anyone with the URL can view
+- **Fully client-side** - loads manifest and files from AT Protocol
+
+Example URL:
+```
+https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:xxx&cid=bafkrei...#at://did:plc:xxx/ai.focus.sync.directory/...
+```
+
+**How it works:**
+1. Viewer template is uploaded as a blob (one-time)
+2. Record URI is passed in URL hash (`#at://...`)
+3. JavaScript fetches manifest via `com.atproto.repo.getRecord`
+4. Files are loaded from blob store via `com.atproto.sync.getBlob`
+5. Everything is publicly accessible - no authentication needed!
+
+**Option 2: Static HTML Page**
+
+Generate a standalone HTML file with embedded blob links:
+
+```bash
+# Generate for latest sync
+npm run web-links
+
+# Generate for specific record
+npm run web-links at://did:plc:.../ai.focus.sync.directory/...
+```
+
+This creates a local HTML file with all file links pre-generated.
 
 ## Manifest Structure
 

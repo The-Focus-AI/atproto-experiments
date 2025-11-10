@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>image bank - AT Protocol Blob Store</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #000;
+      color: #fff;
+      line-height: 1.6;
+      padding: 0;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: #fff;
+      color: #000;
+    }
+
+    .header {
+      background: #000;
+      color: #fff;
+      padding: 3rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg, #de0029 0%, #de0029 33%, #ffca05 33%, #ffca05 66%, #0066b3 66%, #0066b3 100%);
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      font-size: 1rem;
+      font-weight: 300;
+      opacity: 0.8;
+    }
+
+    .header code {
+      background: rgba(255,255,255,0.1);
+      color: #ffca05;
+      padding: 0.3rem 0.6rem;
+      border-radius: 2px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      display: inline-block;
+      margin-top: 0.5rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      background: #000;
+      border-top: 3px solid #de0029;
+    }
+
+    .stat {
+      padding: 2rem;
+      text-align: center;
+      border-right: 1px solid #333;
+      color: #fff;
+    }
+
+    .stat:last-child {
+      border-right: none;
+    }
+
+    .stat:nth-child(1) { background: #de0029; }
+    .stat:nth-child(2) { background: #ffca05; color: #000; }
+    .stat:nth-child(3) { background: #0066b3; }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 900;
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 700;
+      margin-top: 0.5rem;
+    }
+
+    .content {
+      padding: 3rem 2rem;
+    }
+
+    .directory {
+      margin-bottom: 3rem;
+    }
+
+    .directory-header {
+      background: #000;
+      color: #fff;
+      padding: 1rem 1.5rem;
+      font-size: 1.2rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-left: 8px solid #de0029;
+      margin-bottom: 1.5rem;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .directory-header:hover {
+      background: #222;
+    }
+
+    .directory-toggle {
+      font-size: 1.5rem;
+      transition: transform 0.3s;
+    }
+
+    .directory.collapsed .directory-toggle {
+      transform: rotate(-90deg);
+    }
+
+    .directory.collapsed .directory-content {
+      display: none;
+    }
+
+    .directory-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .file {
+      border: 3px solid #000;
+      background: #f5f5f5;
+      overflow: hidden;
+    }
+
+    .file-preview {
+      width: 100%;
+      height: 300px;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .file-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .file-preview.no-image {
+      height: 80px;
+      background: linear-gradient(135deg, #de0029 0%, #de0029 50%, #000 50%, #000 100%);
+      background-size: 20px 20px;
+    }
+
+    .file-icon-large {
+      font-size: 3rem;
+      filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+    }
+
+    .file-info {
+      padding: 1.5rem;
+      background: #fff;
+    }
+
+    .file-name {
+      font-weight: 900;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      word-break: break-word;
+      color: #000;
+    }
+
+    .file-meta {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 1rem;
+      font-family: 'Courier New', monospace;
+    }
+
+    .file-actions {
+      display: flex;
+      gap: 0;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 0.75rem 1.5rem;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .btn-view {
+      background: #0066b3;
+      color: #fff;
+    }
+
+    .btn-view:hover {
+      background: #004a80;
+    }
+
+    .btn-download {
+      background: #ffca05;
+      color: #000;
+    }
+
+    .btn-download:hover {
+      background: #e5b500;
+    }
+
+    .footer {
+      padding: 2rem;
+      background: #000;
+      color: #fff;
+      text-align: center;
+      font-size: 0.85rem;
+      border-top: 8px solid #de0029;
+    }
+
+    .footer a {
+      color: #ffca05;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .footer code {
+      background: #222;
+      color: #ffca05;
+      padding: 0.2rem 0.5rem;
+      border-radius: 2px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+    }
+
+    .footer p {
+      margin: 0.5rem 0;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox.active {
+      display: flex;
+    }
+
+    .lightbox-content {
+      max-width: 90%;
+      max-height: 90%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .lightbox-preview {
+      max-width: 85vw;
+      max-height: 70vh;
+      overflow: auto;
+      background: #fff;
+      border: 4px solid #ffca05;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .lightbox-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .lightbox-preview pre {
+      margin: 0;
+      padding: 2rem;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #000;
+    }
+
+    .lightbox-info {
+      background: #000;
+      color: #fff;
+      padding: 1rem 2rem;
+      margin-top: 1rem;
+      border: 3px solid #ffca05;
+      text-align: center;
+      min-width: 400px;
+    }
+
+    .lightbox-filename {
+      font-weight: 900;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .lightbox-meta {
+      font-size: 0.85rem;
+      color: #ffca05;
+      font-family: 'Courier New', monospace;
+    }
+
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #de0029;
+      color: #fff;
+      border: none;
+      width: 60px;
+      height: 60px;
+      font-size: 2rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-weight: 900;
+      z-index: 10000;
+    }
+
+    .lightbox-nav:hover {
+      background: #b5001f;
+    }
+
+    .lightbox-nav:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .lightbox-nav.prev {
+      left: 2rem;
+    }
+
+    .lightbox-nav.next {
+      right: 2rem;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
+      background: #de0029;
+      color: #fff;
+      border: none;
+      width: 50px;
+      height: 50px;
+      font-size: 2rem;
+      cursor: pointer;
+      font-weight: 900;
+      transition: background 0.2s;
+      z-index: 10000;
+    }
+
+    .lightbox-close:hover {
+      background: #b5001f;
+    }
+
+    .lightbox-download {
+      background: #ffca05;
+      color: #000;
+      border: none;
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: background 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .lightbox-download:hover {
+      background: #e5b500;
+    }
+
+    @media (max-width: 768px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .stat {
+        border-right: none;
+        border-bottom: 1px solid #333;
+      }
+
+      .stat:last-child {
+        border-bottom: none;
+      }
+
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .file-preview {
+        height: 200px;
+      }
+
+      .file-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+  <script>
+    const files = [{"path":".DS_Store","dir":"","filename":".DS_Store","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreihxcz3cemshwntqbp7fsnlklysqxfyn7gk7i5nux7bc7nraugdoxq","size":6148,"mimeType":"application/octet-stream","uploadedAt":"2025-11-10T11:35:11.277Z","icon":"📎","preview":false,"isImage":false,"cid":"bafkreihxcz3cemshwntqbp7fsnlklysqxfyn7gk7i5nux7bc7nraugdoxq"},{"path":".claude/settings.local.json","dir":".claude","filename":"settings.local.json","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreib73slpnisrhyf2urmaobvdeec6qmnnnaqbzsdxguev4x7kcp3y4u","size":143,"mimeType":"application/json","uploadedAt":"2025-11-10T11:35:11.764Z","icon":"📋","preview":true,"isImage":false,"cid":"bafkreib73slpnisrhyf2urmaobvdeec6qmnnnaqbzsdxguev4x7kcp3y4u"},{"path":"designs/IMG_20180512_175412_504.jpg","dir":"designs","filename":"IMG_20180512_175412_504.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreian7yo3dwx7ilwusfgop43ptzowinibtb773u66q6quv44zh2jnfq","size":1632118,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:20:51.494Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreian7yo3dwx7ilwusfgop43ptzowinibtb773u66q6quv44zh2jnfq"},{"path":"designs/IMG_20190607_201436.jpg","dir":"designs","filename":"IMG_20190607_201436.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreihabgkkt3w4u6dnx2wlrmvu6nxwg4vc3uza4jri2qtyzv7avykw5q","size":3645530,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:20:53.935Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreihabgkkt3w4u6dnx2wlrmvu6nxwg4vc3uza4jri2qtyzv7avykw5q"},{"path":"designs/PXL_20220627_184556337.jpg","dir":"designs","filename":"PXL_20220627_184556337.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreiceidwyepaascuckompqvtsfvefbmlkcnjkznj4wp5ib6jdy6zu4e","size":2936719,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:20:55.534Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreiceidwyepaascuckompqvtsfvefbmlkcnjkznj4wp5ib6jdy6zu4e"},{"path":"designs/PXL_20220627_184559338.jpg","dir":"designs","filename":"PXL_20220627_184559338.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreif2sf3a4nbdlnt6lwtfokkee2nbuwb6w6p2abxryyza6nehd3lxjq","size":2911014,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:21:01.168Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreif2sf3a4nbdlnt6lwtfokkee2nbuwb6w6p2abxryyza6nehd3lxjq"},{"path":"designs/PXL_20220820_074709157.jpg","dir":"designs","filename":"PXL_20220820_074709157.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreia4n2y7vv35ct6t6jm3y7zumgmk66y2s6qebqaoi4242672wnesqe","size":5524701,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:21:03.756Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreia4n2y7vv35ct6t6jm3y7zumgmk66y2s6qebqaoi4242672wnesqe"},{"path":"designs/PXL_20240508_195509895.jpg","dir":"designs","filename":"PXL_20240508_195509895.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreiaoslbrtbllpckwzlj6z3pgcmayu42adqw4oaxaxqqiy5hezhskla","size":4195007,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:21:08.064Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreiaoslbrtbllpckwzlj6z3pgcmayu42adqw4oaxaxqqiy5hezhskla"},{"path":"designs/PXL_20250912_055251802.jpg","dir":"designs","filename":"PXL_20250912_055251802.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreigqndwh5vfyh7dfjerfmqylsqson745hi65imm7363ij2qy54mpri","size":4018089,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:21:10.146Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreigqndwh5vfyh7dfjerfmqylsqson745hi65imm7363ij2qy54mpri"},{"path":"designs/PXL_20250914_155746661.jpg","dir":"designs","filename":"PXL_20250914_155746661.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreigpxwx2j75oevahw2zqilve2yffwegrtdytcelzewimhuqrz6qffe","size":3219976,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:21:13.286Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreigpxwx2j75oevahw2zqilve2yffwegrtdytcelzewimhuqrz6qffe"},{"path":"designs/PXL_20250914_155752790.jpg","dir":"designs","filename":"PXL_20250914_155752790.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreifal4du6wkd2r67u3fykkwhj6cduomlfev6bf57nioqgsff7mowka","size":3236120,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:21:15.172Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreifal4du6wkd2r67u3fykkwhj6cduomlfev6bf57nioqgsff7mowka"},{"path":"designs/PXL_20251025_172554771.MP.jpg","dir":"designs","filename":"PXL_20251025_172554771.MP.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreihoqcqcfijeugloan2wzgxaefy42xscmznncuwcr3radr6xufrfwm","size":5780768,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:21:20.250Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreihoqcqcfijeugloan2wzgxaefy42xscmznncuwcr3radr6xufrfwm"},{"path":"designs/PXL_20251101_154829101.jpg","dir":"designs","filename":"PXL_20251101_154829101.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreiemrm6mjqhn7g34evwb4ch4uctniy2qc4jyroswqnq3vzuac7pjoe","size":3140639,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:21:22.354Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreiemrm6mjqhn7g34evwb4ch4uctniy2qc4jyroswqnq3vzuac7pjoe"},{"path":"generate_images.py","dir":"","filename":"generate_images.py","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreifeddmyaaxcrwcm3ixsr243rjmmpywywy5ati2afmphxfibmv44le","size":2028,"mimeType":"application/octet-stream","uploadedAt":"2025-11-10T11:35:12.112Z","icon":"📎","preview":false,"isImage":false,"cid":"bafkreifeddmyaaxcrwcm3ixsr243rjmmpywywy5ati2afmphxfibmv44le"},{"path":"images.json","dir":"","filename":"images.json","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreid6iiulsppoge4fqbnxmvvmrplrbyxnhyx5kiyyixmtcjdnmfx6ta","size":3635,"mimeType":"application/json","uploadedAt":"2025-11-10T11:35:12.473Z","icon":"📋","preview":true,"isImage":false,"cid":"bafkreid6iiulsppoge4fqbnxmvvmrplrbyxnhyx5kiyyixmtcjdnmfx6ta"},{"path":"index.html","dir":"","filename":"index.html","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreicbh25knpjkpjk2zk4bfmnwmnn2s3xjbwj63kwyiz5e55yg7afmdi","size":20267,"mimeType":"text/html","uploadedAt":"2025-11-10T11:35:12.801Z","icon":"📄","preview":true,"isImage":false,"cid":"bafkreicbh25knpjkpjk2zk4bfmnwmnn2s3xjbwj63kwyiz5e55yg7afmdi"},{"path":"mise.toml","dir":"","filename":"mise.toml","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreibky25d7tvp2pthaiimduhqtiblcbuu2wva3xwg2rxym2evqivcom","size":63,"mimeType":"application/octet-stream","uploadedAt":"2025-11-10T11:35:13.136Z","icon":"📎","preview":false,"isImage":false,"cid":"bafkreibky25d7tvp2pthaiimduhqtiblcbuu2wva3xwg2rxym2evqivcom"},{"path":"woodpile/PXL_20251107_172146791.MP.jpg","dir":"woodpile","filename":"PXL_20251107_172146791.MP.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreicyxueid4ukyfbowpahvbngjhni4mnhjg6dirukmd4bmbeyzpu6zi","size":8440257,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:21:28.217Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreicyxueid4ukyfbowpahvbngjhni4mnhjg6dirukmd4bmbeyzpu6zi"},{"path":"woodpile/PXL_20251108_132810913.MP.jpg","dir":"woodpile","filename":"PXL_20251108_132810913.MP.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreigulwjkbwhmldi5buxm2hrtpcd4ntjk2n623w4liwlk6px5wdjnfy","size":8465196,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:21:33.591Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreigulwjkbwhmldi5buxm2hrtpcd4ntjk2n623w4liwlk6px5wdjnfy"},{"path":"woodpile/PXL_20251108_132834342.MP.jpg","dir":"woodpile","filename":"PXL_20251108_132834342.MP.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreih4pujrx2yxgvozocudj7xvc2wchqenutfolmjffmy545qeke3g5q","size":9401983,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:21:39.139Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreih4pujrx2yxgvozocudj7xvc2wchqenutfolmjffmy545qeke3g5q"},{"path":"woodpile/PXL_20251108_134131788.MP.jpg","dir":"woodpile","filename":"PXL_20251108_134131788.MP.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreieazlnzdmr6wkvg6pnnu5oiyj2dhjyphrk2cl4epadgei6n3vlp3m","size":10359679,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:21:44.857Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreieazlnzdmr6wkvg6pnnu5oiyj2dhjyphrk2cl4epadgei6n3vlp3m"},{"path":"woodpile/PXL_20251108_134143218.MP.jpg","dir":"woodpile","filename":"PXL_20251108_134143218.MP.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreihbdjdssjdaulqcjcwin3rrgsjhao4xllnpromku4sfkq73zuqjwy","size":10002179,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:21:50.442Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreihbdjdssjdaulqcjcwin3rrgsjhao4xllnpromku4sfkq73zuqjwy"},{"path":"woodpile/PXL_20251109_131003029.jpg","dir":"woodpile","filename":"PXL_20251109_131003029.jpg","url":"https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreifagshipz72qgmqd3ytd5tqpp6lyhxaisgnyc6o6hbv4qnld5umly","size":5870989,"mimeType":"image/jpeg","uploadedAt":"2025-11-10T11:21:53.993Z","icon":"🖼️","preview":true,"isImage":true,"cid":"bafkreifagshipz72qgmqd3ytd5tqpp6lyhxaisgnyc6o6hbv4qnld5umly"}];
+    let currentIndex = 0;
+
+    function toggleDirectory(element) {
+      element.parentElement.classList.toggle('collapsed');
+    }
+
+    function openLightbox(index) {
+      currentIndex = index;
+      showFile(currentIndex);
+      document.getElementById('lightbox').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('active');
+      document.body.style.overflow = 'auto';
+    }
+
+    function nextFile() {
+      if (currentIndex < files.length - 1) {
+        currentIndex++;
+        showFile(currentIndex);
+      }
+    }
+
+    function prevFile() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        showFile(currentIndex);
+      }
+    }
+
+    async function showFile(index) {
+      const file = files[index];
+      const preview = document.getElementById('lightbox-preview');
+      const filename = document.getElementById('lightbox-filename');
+      const meta = document.getElementById('lightbox-meta');
+      const download = document.getElementById('lightbox-download');
+      const prevBtn = document.getElementById('lightbox-prev');
+      const nextBtn = document.getElementById('lightbox-next');
+
+      filename.textContent = file.filename;
+      meta.textContent = `${file.mimeType} • ${formatBytes(file.size)}`;
+      download.href = file.url;
+      download.download = file.filename;
+
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === files.length - 1;
+
+      preview.innerHTML = '<div style="padding: 2rem; text-align: center;">Loading...</div>';
+
+      if (file.isImage) {
+        preview.innerHTML = `<img src="${file.url}" alt="${file.filename}">`;
+      } else if (file.mimeType.startsWith('text/') || file.mimeType === 'application/json') {
+        try {
+          const response = await fetch(file.url);
+          const text = await response.text();
+          preview.innerHTML = `<pre>${escapeHtml(text)}</pre>`;
+        } catch (error) {
+          preview.innerHTML = '<div style="padding: 2rem; color: #de0029;">Failed to load preview</div>';
+        }
+      } else {
+        preview.innerHTML = `
+          <div style="padding: 3rem; text-align: center;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">${file.icon}</div>
+            <div style="font-size: 1.2rem; font-weight: 900; margin-bottom: 1rem;">${file.filename}</div>
+            <div style="color: #666;">Preview not available for this file type</div>
+          </div>
+        `;
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      const lightbox = document.getElementById('lightbox');
+      if (!lightbox.classList.contains('active')) return;
+
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') prevFile();
+      if (e.key === 'ArrowRight') nextFile();
+    });
+
+    // Click outside to close
+    document.addEventListener('click', (e) => {
+      if (e.target.id === 'lightbox') {
+        closeLightbox();
+      }
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>image bank</h1>
+      <p>AT Protocol Blob Store Directory</p>
+      <code>at://did:plc:t3frizpydokirlftzvny544g/ai.focus.sync.directory/3m5bjqey7ux2q</code>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-value">23</span>
+        <span class="stat-label">Files</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">88.5 MB</span>
+        <span class="stat-label">Total Size</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">11/10/2025</span>
+        <span class="stat-label">Created</span>
+      </div>
+    </div>
+
+    <div class="content">
+      
+          <div class="directory">
+            <div class="directory-header" onclick="toggleDirectory(this)">
+              <span>Root Directory (5)</span>
+              <span class="directory-toggle">▼</span>
+            </div>
+            <div class="directory-content">
+              
+                  <div class="file">
+                    <div class="file-preview no-image" onclick="openLightbox(0)" style="cursor: pointer;">
+                      <span class="file-icon-large">📎</span>
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">.DS_Store</div>
+                      <div class="file-meta">
+                        application/octet-stream • 6.0 KB<br>
+                        11/10/2025, 6:35:11 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(0)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreihxcz3cemshwntqbp7fsnlklysqxfyn7gk7i5nux7bc7nraugdoxq" class="btn btn-download" download=".DS_Store">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview no-image" onclick="openLightbox(13)" style="cursor: pointer;">
+                      <span class="file-icon-large">📎</span>
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">generate_images.py</div>
+                      <div class="file-meta">
+                        application/octet-stream • 2.0 KB<br>
+                        11/10/2025, 6:35:12 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(13)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreifeddmyaaxcrwcm3ixsr243rjmmpywywy5ati2afmphxfibmv44le" class="btn btn-download" download="generate_images.py">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview no-image" onclick="openLightbox(14)" style="cursor: pointer;">
+                      <span class="file-icon-large">📋</span>
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">images.json</div>
+                      <div class="file-meta">
+                        application/json • 3.5 KB<br>
+                        11/10/2025, 6:35:12 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(14)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreid6iiulsppoge4fqbnxmvvmrplrbyxnhyx5kiyyixmtcjdnmfx6ta" class="btn btn-download" download="images.json">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview no-image" onclick="openLightbox(15)" style="cursor: pointer;">
+                      <span class="file-icon-large">📄</span>
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">index.html</div>
+                      <div class="file-meta">
+                        text/html • 19.8 KB<br>
+                        11/10/2025, 6:35:12 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(15)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreicbh25knpjkpjk2zk4bfmnwmnn2s3xjbwj63kwyiz5e55yg7afmdi" class="btn btn-download" download="index.html">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview no-image" onclick="openLightbox(16)" style="cursor: pointer;">
+                      <span class="file-icon-large">📎</span>
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">mise.toml</div>
+                      <div class="file-meta">
+                        application/octet-stream • 63 B<br>
+                        11/10/2025, 6:35:13 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(16)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreibky25d7tvp2pthaiimduhqtiblcbuu2wva3xwg2rxym2evqivcom" class="btn btn-download" download="mise.toml">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+            </div>
+          </div>
+        
+          <div class="directory">
+            <div class="directory-header" onclick="toggleDirectory(this)">
+              <span>.claude (1)</span>
+              <span class="directory-toggle">▼</span>
+            </div>
+            <div class="directory-content">
+              
+                  <div class="file">
+                    <div class="file-preview no-image" onclick="openLightbox(1)" style="cursor: pointer;">
+                      <span class="file-icon-large">📋</span>
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">settings.local.json</div>
+                      <div class="file-meta">
+                        application/json • 143 B<br>
+                        11/10/2025, 6:35:11 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(1)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreib73slpnisrhyf2urmaobvdeec6qmnnnaqbzsdxguev4x7kcp3y4u" class="btn btn-download" download="settings.local.json">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+            </div>
+          </div>
+        
+          <div class="directory">
+            <div class="directory-header" onclick="toggleDirectory(this)">
+              <span>designs (11)</span>
+              <span class="directory-toggle">▼</span>
+            </div>
+            <div class="directory-content">
+              
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(2)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreian7yo3dwx7ilwusfgop43ptzowinibtb773u66q6quv44zh2jnfq" alt="IMG_20180512_175412_504.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">IMG_20180512_175412_504.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 1.6 MB<br>
+                        11/10/2025, 6:20:51 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(2)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreian7yo3dwx7ilwusfgop43ptzowinibtb773u66q6quv44zh2jnfq" class="btn btn-download" download="IMG_20180512_175412_504.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(3)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreihabgkkt3w4u6dnx2wlrmvu6nxwg4vc3uza4jri2qtyzv7avykw5q" alt="IMG_20190607_201436.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">IMG_20190607_201436.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 3.5 MB<br>
+                        11/10/2025, 6:20:53 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(3)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreihabgkkt3w4u6dnx2wlrmvu6nxwg4vc3uza4jri2qtyzv7avykw5q" class="btn btn-download" download="IMG_20190607_201436.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(4)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreiceidwyepaascuckompqvtsfvefbmlkcnjkznj4wp5ib6jdy6zu4e" alt="PXL_20220627_184556337.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20220627_184556337.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 2.8 MB<br>
+                        11/10/2025, 6:20:55 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(4)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreiceidwyepaascuckompqvtsfvefbmlkcnjkznj4wp5ib6jdy6zu4e" class="btn btn-download" download="PXL_20220627_184556337.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(5)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreif2sf3a4nbdlnt6lwtfokkee2nbuwb6w6p2abxryyza6nehd3lxjq" alt="PXL_20220627_184559338.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20220627_184559338.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 2.8 MB<br>
+                        11/10/2025, 6:21:01 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(5)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreif2sf3a4nbdlnt6lwtfokkee2nbuwb6w6p2abxryyza6nehd3lxjq" class="btn btn-download" download="PXL_20220627_184559338.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(6)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreia4n2y7vv35ct6t6jm3y7zumgmk66y2s6qebqaoi4242672wnesqe" alt="PXL_20220820_074709157.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20220820_074709157.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 5.3 MB<br>
+                        11/10/2025, 6:21:03 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(6)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreia4n2y7vv35ct6t6jm3y7zumgmk66y2s6qebqaoi4242672wnesqe" class="btn btn-download" download="PXL_20220820_074709157.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(7)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreiaoslbrtbllpckwzlj6z3pgcmayu42adqw4oaxaxqqiy5hezhskla" alt="PXL_20240508_195509895.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20240508_195509895.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 4.0 MB<br>
+                        11/10/2025, 6:21:08 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(7)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreiaoslbrtbllpckwzlj6z3pgcmayu42adqw4oaxaxqqiy5hezhskla" class="btn btn-download" download="PXL_20240508_195509895.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(8)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreigqndwh5vfyh7dfjerfmqylsqson745hi65imm7363ij2qy54mpri" alt="PXL_20250912_055251802.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20250912_055251802.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 3.8 MB<br>
+                        11/10/2025, 6:21:10 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(8)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreigqndwh5vfyh7dfjerfmqylsqson745hi65imm7363ij2qy54mpri" class="btn btn-download" download="PXL_20250912_055251802.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(9)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreigpxwx2j75oevahw2zqilve2yffwegrtdytcelzewimhuqrz6qffe" alt="PXL_20250914_155746661.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20250914_155746661.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 3.1 MB<br>
+                        11/10/2025, 6:21:13 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(9)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreigpxwx2j75oevahw2zqilve2yffwegrtdytcelzewimhuqrz6qffe" class="btn btn-download" download="PXL_20250914_155746661.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(10)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreifal4du6wkd2r67u3fykkwhj6cduomlfev6bf57nioqgsff7mowka" alt="PXL_20250914_155752790.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20250914_155752790.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 3.1 MB<br>
+                        11/10/2025, 6:21:15 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(10)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreifal4du6wkd2r67u3fykkwhj6cduomlfev6bf57nioqgsff7mowka" class="btn btn-download" download="PXL_20250914_155752790.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(11)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreihoqcqcfijeugloan2wzgxaefy42xscmznncuwcr3radr6xufrfwm" alt="PXL_20251025_172554771.MP.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20251025_172554771.MP.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 5.5 MB<br>
+                        11/10/2025, 6:21:20 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(11)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreihoqcqcfijeugloan2wzgxaefy42xscmznncuwcr3radr6xufrfwm" class="btn btn-download" download="PXL_20251025_172554771.MP.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(12)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreiemrm6mjqhn7g34evwb4ch4uctniy2qc4jyroswqnq3vzuac7pjoe" alt="PXL_20251101_154829101.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20251101_154829101.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 3.0 MB<br>
+                        11/10/2025, 6:21:22 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(12)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreiemrm6mjqhn7g34evwb4ch4uctniy2qc4jyroswqnq3vzuac7pjoe" class="btn btn-download" download="PXL_20251101_154829101.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+            </div>
+          </div>
+        
+          <div class="directory">
+            <div class="directory-header" onclick="toggleDirectory(this)">
+              <span>woodpile (6)</span>
+              <span class="directory-toggle">▼</span>
+            </div>
+            <div class="directory-content">
+              
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(17)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreicyxueid4ukyfbowpahvbngjhni4mnhjg6dirukmd4bmbeyzpu6zi" alt="PXL_20251107_172146791.MP.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20251107_172146791.MP.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 8.0 MB<br>
+                        11/10/2025, 6:21:28 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(17)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreicyxueid4ukyfbowpahvbngjhni4mnhjg6dirukmd4bmbeyzpu6zi" class="btn btn-download" download="PXL_20251107_172146791.MP.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(18)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreigulwjkbwhmldi5buxm2hrtpcd4ntjk2n623w4liwlk6px5wdjnfy" alt="PXL_20251108_132810913.MP.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20251108_132810913.MP.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 8.1 MB<br>
+                        11/10/2025, 6:21:33 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(18)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreigulwjkbwhmldi5buxm2hrtpcd4ntjk2n623w4liwlk6px5wdjnfy" class="btn btn-download" download="PXL_20251108_132810913.MP.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(19)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreih4pujrx2yxgvozocudj7xvc2wchqenutfolmjffmy545qeke3g5q" alt="PXL_20251108_132834342.MP.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20251108_132834342.MP.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 9.0 MB<br>
+                        11/10/2025, 6:21:39 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(19)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreih4pujrx2yxgvozocudj7xvc2wchqenutfolmjffmy545qeke3g5q" class="btn btn-download" download="PXL_20251108_132834342.MP.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(20)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreieazlnzdmr6wkvg6pnnu5oiyj2dhjyphrk2cl4epadgei6n3vlp3m" alt="PXL_20251108_134131788.MP.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20251108_134131788.MP.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 9.9 MB<br>
+                        11/10/2025, 6:21:44 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(20)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreieazlnzdmr6wkvg6pnnu5oiyj2dhjyphrk2cl4epadgei6n3vlp3m" class="btn btn-download" download="PXL_20251108_134131788.MP.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(21)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreihbdjdssjdaulqcjcwin3rrgsjhao4xllnpromku4sfkq73zuqjwy" alt="PXL_20251108_134143218.MP.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20251108_134143218.MP.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 9.5 MB<br>
+                        11/10/2025, 6:21:50 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(21)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreihbdjdssjdaulqcjcwin3rrgsjhao4xllnpromku4sfkq73zuqjwy" class="btn btn-download" download="PXL_20251108_134143218.MP.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="file">
+                    <div class="file-preview " onclick="openLightbox(22)" style="cursor: pointer;">
+                      <img src="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreifagshipz72qgmqd3ytd5tqpp6lyhxaisgnyc6o6hbv4qnld5umly" alt="PXL_20251109_131003029.jpg" loading="lazy">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">PXL_20251109_131003029.jpg</div>
+                      <div class="file-meta">
+                        image/jpeg • 5.6 MB<br>
+                        11/10/2025, 6:21:53 AM
+                      </div>
+                      <div class="file-actions">
+                        <button onclick="openLightbox(22)" class="btn btn-view">View</button>
+                        <a href="https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:t3frizpydokirlftzvny544g&cid=bafkreifagshipz72qgmqd3ytd5tqpp6lyhxaisgnyc6o6hbv4qnld5umly" class="btn btn-download" download="PXL_20251109_131003029.jpg">Download</a>
+                      </div>
+                    </div>
+                  </div>
+                
+            </div>
+          </div>
+        
+    </div>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="lightbox">
+      <button class="lightbox-close" onclick="closeLightbox()">×</button>
+      <button id="lightbox-prev" class="lightbox-nav prev" onclick="prevFile()">‹</button>
+      <button id="lightbox-next" class="lightbox-nav next" onclick="nextFile()">›</button>
+
+      <div class="lightbox-content">
+        <div id="lightbox-preview" class="lightbox-preview">
+          <!-- Preview content will be inserted here -->
+        </div>
+        <div class="lightbox-info">
+          <div id="lightbox-filename" class="lightbox-filename"></div>
+          <div id="lightbox-meta" class="lightbox-meta"></div>
+          <a id="lightbox-download" class="lightbox-download" href="#" download>Download</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>
+        Powered by <a href="https://atproto.com" target="_blank">AT Protocol</a> •
+        Files served from Bluesky's blob store via <code>com.atproto.sync.getBlob</code>
+      </p>
+      <p>
+        DID: <code>did:plc:t3frizpydokirlftzvny544g</code>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

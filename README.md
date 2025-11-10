@@ -136,6 +136,17 @@ npm run sync download at://did:plc:.../ai.focus.sync.directory/... ./restored
 - **Incremental Upload**: Calculates CIDs locally and only uploads changed files, saving bandwidth
 - **Custom Record Type**: Uses `ai.focus.sync.directory` to anchor all blobs, making them retrievable via the AT Protocol API
 - **No Local Manifest**: Download any version directly from the network using record URIs
+- **Web Viewer**: Interactive gallery/list viewer with shareable URLs - no server needed!
+
+```bash
+# Publish viewer template (one-time)
+npm run publish-viewer
+
+# Get shareable URL for any directory
+npm run viewer-url
+```
+
+The viewer loads directly from the blob store and displays all files with preview/download links. Anyone with the URL can view the files - no login required!
 
 See [DIRECTORY_SYNC.md](DIRECTORY_SYNC.md) for full documentation.
 

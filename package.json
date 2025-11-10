@@ -9,6 +9,7 @@
     "sync": "tsx examples/directory-sync.ts",
     "pds-sync": "tsx examples/pds-sync.ts",
     "firehose": "tsx examples/firehose-blobs.ts",
+    "web-links": "tsx examples/generate-web-links.ts",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
