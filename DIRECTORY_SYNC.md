@@ -4,11 +4,13 @@ This utility demonstrates how to store entire directories in the AT Protocol blo
 
 ## How It Works
 
-1. **Upload**: Each file in the directory is uploaded as a blob to your Personal Data Server (PDS)
-2. **Manifest**: A JSON manifest is created tracking all files, their paths, and blob references (CIDs)
-3. **Anchor**: The manifest is saved as a custom record (`ai.focus.sync.directory`) which anchors ALL blobs, making them retrievable
-4. **Post**: A post is created for discoverability, referencing the custom record
-5. **Download**: The manifest is fetched from the custom record and used to reconstruct the original directory structure by downloading blobs via `com.atproto.sync.getBlob`
+1. **Incremental Check**: When uploading, fetches previous manifest (if exists) and calculates local CIDs for all files
+2. **Upload**: Only uploads new or modified files to your Personal Data Server (PDS) as blobs
+3. **Skip Unchanged**: Files with matching CIDs are skipped, reusing previous blob references (no data transfer!)
+4. **Manifest**: A JSON manifest is created tracking all files, their paths, and blob references (CIDs)
+5. **Anchor**: The manifest is saved as a custom record (`ai.focus.sync.directory`) which anchors ALL blobs, making them retrievable
+6. **Post**: A post is created for discoverability, referencing the custom record
+7. **Download**: The manifest is fetched from the custom record and used to reconstruct the original directory structure by downloading blobs via `com.atproto.sync.getBlob`
 
 ## Key Innovation: Custom Record Type for Blob Anchoring
 
@@ -38,11 +40,27 @@ npm run sync upload ./my-documents
 ```
 
 This will:
-- Upload all files recursively
+- Check for previous sync and calculate CIDs for all files
+- Upload only new or modified files (skips unchanged files!)
 - Create a custom record (`ai.focus.sync.directory`) anchoring all blobs
 - Create a post for discoverability referencing the record URI
 - Save a local manifest file (`{directory-name}-manifest.json`) for backup
 - Show you the Bluesky post URL and record URI
+
+Example output:
+```
+📦 Uploading directory: my-documents
+✨ Found previous sync from 11/10/2025, 6:28:28 AM
+──────────────────────────────────────────────────
+  ⏭️  Skipping: README.md (unchanged)
+  ⬆️  Uploading: data.json (226 bytes)
+  ⬆️  Uploading: newfile.txt (24 bytes)
+  ⏭️  Skipping: notes.txt (unchanged)
+──────────────────────────────────────────────────
+✅ Uploaded 2 new/modified files
+⏭️  Skipped 2 unchanged files
+📦 Total: 4 files (1013 bytes)
+```
 
 ### List Synced Directories
 
@@ -144,6 +162,7 @@ npm run sync upload ./my-project
 
 ## Features
 
+✅ **Incremental Upload** - Only uploads new/modified files, skips unchanged ones
 ✅ **Recursive Upload** - Handles nested directories automatically
 ✅ **MIME Type Detection** - Automatically sets correct content types
 ✅ **Custom Record Storage** - Manifest stored as `ai.focus.sync.directory` record
@@ -180,12 +199,30 @@ npm run sync download at://did:plc:.../ai.focus.sync.directory/3m572snkmkb2a ./t
 
 ## Technical Details
 
+### Incremental Upload
+
+The utility implements smart incremental upload:
+
+1. **Fetch Previous Manifest**: Queries `ai.focus.sync.directory` collection for the most recent sync of the same directory
+2. **Calculate Local CIDs**: Uses `multiformats` library to calculate CIDv1 with raw codec and SHA-256 for each file
+3. **Compare CIDs**: Compares local CIDs with previous CIDs to detect changes
+4. **Skip Unchanged**: Files with matching CIDs reuse previous blob references (no upload!)
+5. **Upload New/Modified**: Only files with changed CIDs are uploaded
+
+This approach:
+- Saves bandwidth by avoiding redundant uploads
+- Speeds up syncing large directories with few changes
+- Preserves blob references across versions (content-addressed storage)
+- Works even if you rename the directory (compares by directory name)
+
 ### Blob Storage
 
 - Each file is uploaded via `agent.uploadBlob()`
 - Returns a blob reference with CID (Content Identifier)
 - Blobs are content-addressed (same content = same CID)
-- No size limits mentioned in docs, but practical limits likely exist
+- AT Protocol automatically deduplicates blobs server-side
+- Individual blob size limit: 50MB (PDS limit)
+- Total storage: Currently unlimited
 
 ### Custom Record Type
 

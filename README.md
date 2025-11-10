@@ -113,10 +113,10 @@ npm test -- tests/01-authentication.test.ts
 
 ### Directory Sync to Blob Store
 
-📦 Sync entire directories to the AT Protocol blob store!
+📦 Sync entire directories to the AT Protocol blob store with incremental upload!
 
 ```bash
-# Upload a directory
+# Upload a directory (only uploads new/modified files)
 npm run sync upload ./my-documents
 
 # List synced directories (shows record URIs)
@@ -132,7 +132,10 @@ npm run sync download ./my-restored-files
 npm run sync download at://did:plc:.../ai.focus.sync.directory/... ./restored
 ```
 
-**Key Innovation:** Uses custom record type `ai.focus.sync.directory` to anchor all blobs, making them retrievable via the AT Protocol API. No local manifest files needed!
+**Key Innovations:**
+- **Incremental Upload**: Calculates CIDs locally and only uploads changed files, saving bandwidth
+- **Custom Record Type**: Uses `ai.focus.sync.directory` to anchor all blobs, making them retrievable via the AT Protocol API
+- **No Local Manifest**: Download any version directly from the network using record URIs
 
 See [DIRECTORY_SYNC.md](DIRECTORY_SYNC.md) for full documentation.
 

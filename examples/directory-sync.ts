@@ -11,6 +11,11 @@
 import { BskyAgent } from '@atproto/api';
 import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync, existsSync } from 'fs';
 import { join, relative, dirname } from 'path';
+import { createHash } from 'crypto';
+import { CID } from 'multiformats/cid';
+import * as Block from 'multiformats/block';
+import { sha256 } from 'multiformats/hashes/sha2';
+import * as raw from 'multiformats/codecs/raw';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -72,19 +77,70 @@ function getMimeType(filePath: string): string {
   return mimeTypes[ext || ''] || 'application/octet-stream';
 }
 
+async function calculateCID(data: Buffer): Promise<string> {
+  // AT Protocol uses CIDv1 with raw codec and sha256
+  const hash = await sha256.digest(data);
+  const cid = CID.create(1, raw.code, hash);
+  return cid.toString();
+}
+
+async function getPreviousManifest(agent: BskyAgent, dirName: string): Promise<DirectoryManifest | null> {
+  try {
+    const records = await agent.api.com.atproto.repo.listRecords({
+      repo: agent.session!.did,
+      collection: 'ai.focus.sync.directory',
+      limit: 50,
+    });
+
+    // Find the most recent manifest for this directory
+    const matching = records.data.records
+      .filter((r: any) => r.value.name === dirName)
+      .sort((a: any, b: any) =>
+        new Date(b.value.createdAt).getTime() - new Date(a.value.createdAt).getTime()
+      );
+
+    if (matching.length > 0) {
+      return matching[0].value as DirectoryManifest;
+    }
+  } catch (error) {
+    // No previous manifest found
+  }
+  return null;
+}
+
 async function uploadDirectory(agent: BskyAgent, dirPath: string): Promise<DirectoryManifest> {
+  const dirName = dirPath.split('/').pop() || 'unknown';
+
   console.log(`\n📦 Uploading directory: ${dirPath}`);
+
+  // Try to get previous manifest for incremental upload
+  const previousManifest = await getPreviousManifest(agent, dirName);
+  const previousFiles = new Map<string, FileManifest>();
+
+  if (previousManifest) {
+    console.log(`✨ Found previous sync from ${new Date(previousManifest.createdAt).toLocaleString()}`);
+    previousManifest.files.forEach(f => {
+      const cid = f.blobRef.ref?.$link || f.blobRef.ref;
+      if (cid) {
+        previousFiles.set(f.path, f);
+      }
+    });
+  }
+
   console.log('─'.repeat(50));
 
   const files = await getAllFiles(dirPath);
   const manifest: DirectoryManifest = {
     $type: 'app.bsky.sync.directory',
-    name: dirPath.split('/').pop() || 'unknown',
+    name: dirName,
     rootPath: dirPath,
     files: [],
     totalSize: 0,
     createdAt: new Date().toISOString(),
   };
+
+  let uploadedCount = 0;
+  let skippedCount = 0;
 
   for (const filePath of files) {
     const relativePath = relative(dirPath, filePath);
@@ -92,26 +148,54 @@ async function uploadDirectory(agent: BskyAgent, dirPath: string): Promise<Direc
     const stat = statSync(filePath);
     const mimeType = getMimeType(filePath);
 
-    console.log(`  ⬆️  Uploading: ${relativePath} (${stat.size} bytes)`);
+    // Calculate local CID
+    const localCID = await calculateCID(fileData);
+    const previousFile = previousFiles.get(relativePath);
+    let previousCID = previousFile?.blobRef.ref?.$link || previousFile?.blobRef.ref;
 
-    // Upload blob
-    const uploadResult = await agent.uploadBlob(fileData, {
-      encoding: mimeType,
-    });
+    // Convert CID object to string if needed
+    if (previousCID && typeof previousCID === 'object' && previousCID.toString) {
+      previousCID = previousCID.toString();
+    }
 
-    manifest.files.push({
-      path: relativePath,
-      blobRef: uploadResult.data.blob,
-      size: stat.size,
-      mimeType,
-      uploadedAt: new Date().toISOString(),
-    });
+    // Check if file unchanged
+    if (previousCID === localCID) {
+      console.log(`  ⏭️  Skipping: ${relativePath} (unchanged)`);
+      manifest.files.push({
+        path: relativePath,
+        blobRef: previousFile.blobRef,
+        size: stat.size,
+        mimeType,
+        uploadedAt: previousFile.uploadedAt,
+      });
+      skippedCount++;
+    } else {
+      console.log(`  ⬆️  Uploading: ${relativePath} (${stat.size} bytes)`);
+
+      // Upload blob
+      const uploadResult = await agent.uploadBlob(fileData, {
+        encoding: mimeType,
+      });
+
+      manifest.files.push({
+        path: relativePath,
+        blobRef: uploadResult.data.blob,
+        size: stat.size,
+        mimeType,
+        uploadedAt: new Date().toISOString(),
+      });
+      uploadedCount++;
+    }
 
     manifest.totalSize += stat.size;
   }
 
   console.log('─'.repeat(50));
-  console.log(`✅ Uploaded ${manifest.files.length} files (${manifest.totalSize} bytes total)`);
+  console.log(`✅ Uploaded ${uploadedCount} new/modified files`);
+  if (skippedCount > 0) {
+    console.log(`⏭️  Skipped ${skippedCount} unchanged files`);
+  }
+  console.log(`📦 Total: ${manifest.files.length} files (${manifest.totalSize} bytes)`);
 
   return manifest;
 }
@@ -190,7 +274,7 @@ async function getLatestManifest(agent: BskyAgent): Promise<DirectoryManifest> {
     repo: agent.session!.did,
     collection: 'ai.focus.sync.directory',
     limit: 1,
-    reverse: true, // Get most recent first
+    // Records are returned newest first by default
   });
 
   if (records.data.records.length === 0) {
