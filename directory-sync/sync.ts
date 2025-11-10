@@ -428,45 +428,90 @@ async function main() {
       console.log('');
     });
 
+  } else if (command === 'delete') {
+    if (!path) {
+      console.error('Usage: tsx directory-sync/sync.ts delete <record-uri>');
+      console.error('\nGet the record URI from: npm run sync list');
+      process.exit(1);
+    }
+
+    console.log(`\n🗑️  Deleting directory sync record: ${path}`);
+
+    // Parse AT URI: at://did:plc:abc123/ai.focus.sync.directory/abc123
+    const uriParts = path.replace('at://', '').split('/');
+    const repo = uriParts[0];
+    const collection = uriParts.slice(1, -1).join('.');
+    const rkey = uriParts[uriParts.length - 1];
+
+    // Verify it's the user's own record
+    if (repo !== agent.session!.did) {
+      console.error('❌ Error: You can only delete your own records');
+      process.exit(1);
+    }
+
+    try {
+      // Delete the record
+      await agent.api.com.atproto.repo.deleteRecord({
+        repo: agent.session!.did,
+        collection,
+        rkey,
+      });
+
+      console.log('✅ Record deleted successfully');
+      console.log('\n⚠️  Note: The blobs referenced by this record still exist on the server.');
+      console.log('   They will be garbage collected if no other records reference them.');
+    } catch (error: any) {
+      console.error(`❌ Error deleting record: ${error.message}`);
+      process.exit(1);
+    }
+
   } else {
     console.log(`
 Directory Sync Utility for AT Protocol Blob Store
 
 Usage:
   Upload a directory:
-    tsx examples/directory-sync.ts upload <directory-path>
+    npm run sync upload <directory-path>
 
   Download a directory:
-    tsx examples/directory-sync.ts download [record-uri] <output-directory>
+    npm run sync download [record-uri] <output-directory>
 
   List synced directories:
-    tsx examples/directory-sync.ts list
+    npm run sync list
+
+  Delete a synced directory:
+    npm run sync delete <record-uri>
 
 Examples:
   # Upload a directory
-  tsx examples/directory-sync.ts upload ./my-documents
+  npm run sync upload ./my-documents
 
   # Download latest sync to ./restored-dir
-  tsx examples/directory-sync.ts download
+  npm run sync download
 
   # Download latest sync to specific directory
-  tsx examples/directory-sync.ts download ./my-restored-files
+  npm run sync download ./my-restored-files
 
   # Download specific record by URI
-  tsx examples/directory-sync.ts download at://did:plc:.../ai.focus.sync.directory/... ./restored
+  npm run sync download at://did:plc:.../ai.focus.sync.directory/... ./restored
 
-  # List all synced directories
-  tsx examples/directory-sync.ts list
+  # List all synced directories (shows record URIs)
+  npm run sync list
+
+  # Delete a synced directory record
+  npm run sync delete at://did:plc:.../ai.focus.sync.directory/...
 
 How it works:
   1. Upload: Walks through directory, uploads each file as a blob
   2. Manifest: Creates a custom record (ai.focus.sync.directory) with all blob references
   3. Anchor: Blobs are anchored to the record, making them retrievable
   4. Download: Fetches manifest from record and reconstructs directory structure
+  5. Delete: Removes the manifest record (blobs are garbage collected if unreferenced)
 
 Note:
   - Blobs are downloaded from: https://bsky.social/xrpc/com.atproto.sync.getBlob?did={did}&cid={cid}
-  - Record URIs from 'list' command can be used to download specific versions
+  - Record URIs from 'list' command can be used to download/delete specific versions
+  - Deleting a record does not immediately delete blobs (they're garbage collected)
   - Backward compatible with local manifest files for legacy usage
     `);
   }

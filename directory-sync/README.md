@@ -105,6 +105,28 @@ The download process:
 3. Downloads each blob via `com.atproto.sync.getBlob`
 4. Reconstructs all files with their original paths
 
+### Delete a Synced Directory
+
+```bash
+npm run sync delete <record-uri>
+```
+
+Example:
+```bash
+# Get the record URI from the list command
+npm run sync list
+
+# Delete a specific sync record
+npm run sync delete at://did:plc:.../ai.focus.sync.directory/3m572snkmkb2a
+```
+
+**Important notes:**
+- ⚠️ **Deletion cannot be undone** - the record is permanently removed
+- ⚠️ **You can only delete your own records** - attempting to delete another user's record will fail
+- ℹ️ **Blobs persist after deletion** - the files referenced by the record remain on the server
+- ℹ️ **Garbage collection** - blobs will be automatically cleaned up if no other records reference them
+- 💡 **Use case** - clean up old versions or remove synced directories you no longer need
+
 ### View Files in Browser
 
 **Option 1: Interactive Web Viewer (Recommended)**
