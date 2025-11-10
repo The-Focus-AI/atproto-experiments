@@ -31,12 +31,12 @@ AT Protocol requires blobs to be "anchored" to records before they can be retrie
 ### Upload a Directory
 
 ```bash
-npm run sync upload <directory-path>
+npm run directory-sync upload <directory-path>
 ```
 
 Example:
 ```bash
-npm run sync upload ./my-documents
+npm run directory-sync upload ./my-documents
 ```
 
 This will:
@@ -65,7 +65,7 @@ Example output:
 ### List Synced Directories
 
 ```bash
-npm run sync list
+npm run directory-sync list
 ```
 
 Shows all directories you've synced with their record URIs, file counts, sizes, and creation dates.
@@ -85,18 +85,18 @@ Found 2 directory sync records:
 
 **No arguments - download latest to default directory:**
 ```bash
-npm run sync download
+npm run directory-sync download
 # Downloads latest sync to ./restored-dir
 ```
 
 **One argument - download latest to specific directory:**
 ```bash
-npm run sync download ./my-restored-files
+npm run directory-sync download ./my-restored-files
 ```
 
 **Two arguments - download specific record by URI:**
 ```bash
-npm run sync download at://did:plc:.../ai.focus.sync.directory/... ./restored
+npm run directory-sync download at://did:plc:.../ai.focus.sync.directory/... ./restored
 ```
 
 The download process:
@@ -108,16 +108,16 @@ The download process:
 ### Delete a Synced Directory
 
 ```bash
-npm run sync delete <record-uri>
+npm run directory-sync delete <record-uri>
 ```
 
 Example:
 ```bash
 # Get the record URI from the list command
-npm run sync list
+npm run directory-sync list
 
 # Delete a specific sync record
-npm run sync delete at://did:plc:.../ai.focus.sync.directory/3m572snkmkb2a
+npm run directory-sync delete at://did:plc:.../ai.focus.sync.directory/3m572snkmkb2a
 ```
 
 **Important notes:**
@@ -210,20 +210,20 @@ The manifest is a JSON file that tracks everything about your synced directory:
 
 ### Backup Important Documents
 ```bash
-npm run sync upload ~/important-docs
+npm run directory-sync upload ~/important-docs
 # Restore on another machine:
-npm run sync download
+npm run directory-sync download
 ```
 
 ### Share Configuration Files
 ```bash
-npm run sync upload ~/.config/my-app
+npm run directory-sync upload ~/.config/my-app
 # Share the record URI with others
 ```
 
 ### Version Your Project
 ```bash
-npm run sync upload ./my-project
+npm run directory-sync upload ./my-project
 # Creates a snapshot with all file references
 # Restore specific version by record URI later
 ```
@@ -253,16 +253,16 @@ Try the included example directory:
 
 ```bash
 # Upload the example
-npm run sync upload example-sync-dir
+npm run directory-sync upload example-sync-dir
 
 # List synced directories (shows record URI)
-npm run sync list
+npm run directory-sync list
 
 # Download latest version
-npm run sync download ./test-restore
+npm run directory-sync download ./test-restore
 
 # Download specific version by URI
-npm run sync download at://did:plc:.../ai.focus.sync.directory/3m572snkmkb2a ./test-restore
+npm run directory-sync download at://did:plc:.../ai.focus.sync.directory/3m572snkmkb2a ./test-restore
 ```
 
 ## Technical Details

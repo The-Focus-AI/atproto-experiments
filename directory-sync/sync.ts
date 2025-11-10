@@ -364,7 +364,7 @@ async function main() {
 
   if (command === 'upload') {
     if (!path) {
-      console.error('Usage: tsx examples/directory-sync.ts upload <directory-path>');
+      console.error('Usage: tsx directory-sync/sync.ts upload <directory-path>');
       process.exit(1);
     }
 
@@ -373,7 +373,7 @@ async function main() {
 
     console.log('\n✨ Upload complete!');
     console.log(`\nTo restore later, run:`);
-    console.log(`  tsx examples/directory-sync.ts download ./restored`);
+    console.log(`  tsx directory-sync/sync.ts download ./restored`);
 
   } else if (command === 'download') {
     let manifest: DirectoryManifest;
@@ -387,7 +387,7 @@ async function main() {
       // One arg - could be output dir or source
       if (path.startsWith('at://') || (existsSync(path) && path.endsWith('.json'))) {
         // It's a source, need output dir
-        console.error('Usage: tsx examples/directory-sync.ts download [record-uri|manifest-file] <output-directory>');
+        console.error('Usage: tsx directory-sync/sync.ts download [record-uri|manifest-file] <output-directory>');
         process.exit(1);
       } else {
         // It's an output dir - use latest record
@@ -431,7 +431,7 @@ async function main() {
   } else if (command === 'delete') {
     if (!path) {
       console.error('Usage: tsx directory-sync/sync.ts delete <record-uri>');
-      console.error('\nGet the record URI from: npm run sync list');
+      console.error('\nGet the record URI from: npm run directory-sync list');
       process.exit(1);
     }
 
@@ -471,35 +471,35 @@ Directory Sync Utility for AT Protocol Blob Store
 
 Usage:
   Upload a directory:
-    npm run sync upload <directory-path>
+    npm run directory-sync upload <directory-path>
 
   Download a directory:
-    npm run sync download [record-uri] <output-directory>
+    npm run directory-sync download [record-uri] <output-directory>
 
   List synced directories:
-    npm run sync list
+    npm run directory-sync list
 
   Delete a synced directory:
-    npm run sync delete <record-uri>
+    npm run directory-sync delete <record-uri>
 
 Examples:
   # Upload a directory
-  npm run sync upload ./my-documents
+  npm run directory-sync upload ./my-documents
 
   # Download latest sync to ./restored-dir
-  npm run sync download
+  npm run directory-sync download
 
   # Download latest sync to specific directory
-  npm run sync download ./my-restored-files
+  npm run directory-sync download ./my-restored-files
 
   # Download specific record by URI
-  npm run sync download at://did:plc:.../ai.focus.sync.directory/... ./restored
+  npm run directory-sync download at://did:plc:.../ai.focus.sync.directory/... ./restored
 
   # List all synced directories (shows record URIs)
-  npm run sync list
+  npm run directory-sync list
 
   # Delete a synced directory record
-  npm run sync delete at://did:plc:.../ai.focus.sync.directory/...
+  npm run directory-sync delete at://did:plc:.../ai.focus.sync.directory/...
 
 How it works:
   1. Upload: Walks through directory, uploads each file as a blob

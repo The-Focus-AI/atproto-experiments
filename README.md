@@ -125,6 +125,9 @@ Real-time media downloading from the Bluesky firehose.
 ### 👤 [Account Creation](account/)
 Programmatic Bluesky account creation.
 
+### 📝 [Markdown Sync](markdown-sync/)
+Write Bluesky posts and threads as markdown files, publish them, and sync replies.
+
 See each folder's README for detailed documentation.
 
 ## Examples

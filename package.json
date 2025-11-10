@@ -6,10 +6,11 @@
   "scripts": {
     "setup": "tsx scripts/setup.ts",
     "create-account": "tsx account/create-account.ts",
-    "sync": "tsx directory-sync/sync.ts",
+    "directory-sync": "tsx directory-sync/sync.ts",
     "web-links": "tsx directory-sync/generate-web-links.ts",
     "pds-sync": "tsx pds-sync/sync.ts",
     "firehose": "tsx firehose/firehose-blobs.ts",
+    "md-sync": "tsx markdown-sync/markdown-sync.ts",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
