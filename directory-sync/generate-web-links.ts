@@ -825,7 +825,8 @@ async function generateHTML(manifest: DirectoryManifest, did: string, recordUri?
 async function main() {
   const arg = process.argv[2];
 
-  const agent = new BskyAgent({ service: 'https://bsky.social' });
+  const service = process.env.ATP_SERVICE || 'https://bsky.social';
+  const agent = new BskyAgent({ service });
   await agent.login({
     identifier: process.env.BLUESKY_HANDLE!,
     password: process.env.BLUESKY_PASSWORD!,

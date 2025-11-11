@@ -68,7 +68,8 @@ async function setup() {
 
   try {
     // Create account
-    const agent = new BskyAgent({ service: 'https://bsky.social' });
+    const service = process.env.ATP_SERVICE || 'https://bsky.social';
+    const agent = new BskyAgent({ service });
 
     const response = await agent.createAccount({
       handle,

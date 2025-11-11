@@ -353,7 +353,8 @@ async function main() {
     process.exit(1);
   }
 
-  const agent = new BskyAgent({ service: 'https://bsky.social' });
+  const service = process.env.ATP_SERVICE || 'https://bsky.social';
+  const agent = new BskyAgent({ service });
   await agent.login({
     identifier: process.env.BLUESKY_HANDLE,
     password: process.env.BLUESKY_PASSWORD,

@@ -194,7 +194,8 @@ Examples:
     process.exit(0);
   }
 
-  const agent = new BskyAgent({ service: 'https://bsky.social' });
+  const service = process.env.ATP_SERVICE || 'https://bsky.social';
+  const agent = new BskyAgent({ service });
 
   const identifier = process.env.BLUESKY_HANDLE;
   const password = process.env.BLUESKY_PASSWORD || process.env.BLUESKY_APP_PASSWORD;

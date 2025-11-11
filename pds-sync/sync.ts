@@ -396,7 +396,8 @@ Examples:
     const targetDid = command && command.startsWith('did:') ? command : undefined;
 
     // Login to get authenticated agent
-    const agent = new BskyAgent({ service: 'https://bsky.social' });
+    const service = process.env.ATP_SERVICE || 'https://bsky.social';
+    const agent = new BskyAgent({ service });
     await agent.login({
       identifier: process.env.BLUESKY_HANDLE!,
       password: process.env.BLUESKY_PASSWORD!,
@@ -429,7 +430,8 @@ Examples:
 
   if (command === 'download') {
     // Login to get authenticated agent
-    const agent = new BskyAgent({ service: 'https://bsky.social' });
+    const service = process.env.ATP_SERVICE || 'https://bsky.social';
+    const agent = new BskyAgent({ service });
     await agent.login({
       identifier: process.env.BLUESKY_HANDLE!,
       password: process.env.BLUESKY_PASSWORD!,

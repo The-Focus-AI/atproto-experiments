@@ -173,7 +173,8 @@ async function pollJobs(agent: BskyAgent, watchDids: string[]) {
 
 // Start listener
 async function startListener(watchDids: string[], intervalMs: number = 30000) {
-  const agent = new BskyAgent({ service: 'https://bsky.social' });
+  const service = process.env.ATP_SERVICE || 'https://bsky.social';
+  const agent = new BskyAgent({ service });
 
   const identifier = process.env.BLUESKY_HANDLE;
   const password = process.env.BLUESKY_PASSWORD || process.env.BLUESKY_APP_PASSWORD;
@@ -326,7 +327,8 @@ Press Ctrl+C to stop
 `);
 
   // If no DIDs specified, watch own account
-  const agent = new BskyAgent({ service: 'https://bsky.social' });
+  const service = process.env.ATP_SERVICE || 'https://bsky.social';
+  const agent = new BskyAgent({ service });
   const identifier = process.env.BLUESKY_HANDLE;
   const password = process.env.BLUESKY_PASSWORD || process.env.BLUESKY_APP_PASSWORD;
 

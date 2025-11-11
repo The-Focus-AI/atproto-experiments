@@ -16,9 +16,22 @@ npm run create-account your-handle.bsky.social your-email@example.com YourPasswo
 npm run create-account
 ```
 
+### Custom PDS Server
+
+To create accounts on your local PDS or custom server, set the `ATP_SERVICE` environment variable:
+
+```bash
+# For local PDS server
+ATP_SERVICE=http://localhost:3000 npm run create-account alice.example.test alice@test.com SecurePass123!
+
+# Or add to your .env file:
+# ATP_SERVICE=http://localhost:3000
+```
+
 ## Features
 
-- ✅ Creates accounts on Bluesky's public PDS
+- ✅ Creates accounts on Bluesky's public PDS or custom servers
+- ✅ Respects `ATP_SERVICE` environment variable
 - ✅ Validates input parameters
 - ✅ Returns DID (Decentralized Identifier) and access tokens
 - ✅ Handles errors gracefully with helpful messages
@@ -81,9 +94,10 @@ npm run create-account test-user-1.bsky.social test@example.com TestPass123!
 ## Technical Details
 
 - Uses `com.atproto.server.createAccount` endpoint
-- Connects to `https://bsky.social` by default
+- Connects to `https://bsky.social` by default (or `ATP_SERVICE` if set)
 - Returns JWT tokens for immediate authentication
 - Account is immediately active and ready to use
+- Works with any AT Protocol PDS implementation
 
 ## Code
 

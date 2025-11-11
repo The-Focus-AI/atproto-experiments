@@ -112,13 +112,21 @@ async function postMarkdown(filePath: string, agent: BskyAgent) {
   // Check if main post already exists
   if (parsed.mainPost.metadata.postUri) {
     console.log('✅ Main post already published:', parsed.mainPost.metadata.postUrl);
-    // Fetch the post to get its CID
-    const threadResponse = await agent.getPostThread({ uri: parsed.mainPost.metadata.postUri });
-    if (threadResponse.data.thread.$type === 'app.bsky.feed.defs#threadViewPost' && 'post' in threadResponse.data.thread) {
-      mainPostCid = (threadResponse.data.thread as any).post.cid;
-    } else {
-      throw new Error('Could not fetch main post CID');
-    }
+    // Fetch the post to get its CID - use getRecord for direct repo access
+    // Parse AT URI: at://did:plc:xxx/collection/rkey
+    const atUri = parsed.mainPost.metadata.postUri;
+    const parts = atUri.replace('at://', '').split('/');
+    const repo = parts[0];
+    const collection = parts[1];
+    const rkey = parts[2];
+
+    // Always fetch directly from the repo (PDS) - this is the source of truth
+    const recordResponse = await agent.api.com.atproto.repo.getRecord({
+      repo,
+      collection,
+      rkey,
+    });
+    mainPostCid = recordResponse.data.cid;
   } else {
     // Create main post
     console.log('📝 Publishing main post...');
@@ -144,35 +152,37 @@ async function postMarkdown(filePath: string, agent: BskyAgent) {
     parsed.mainPost.metadata.postUrl = postUrl;
   }
 
-  // Fetch existing replies from the thread
+  // Fetch existing replies from the repo (our own posts only)
   const myDid = agent.session!.did;
   const existingReplies: Array<{ text: string; uri: string; cid: string }> = [];
 
   if (parsed.mainPost.metadata.postUri) {
-    const threadResponse = await agent.getPostThread({ uri: parsed.mainPost.metadata.postUri, depth: 100 });
-    if (threadResponse.data.thread.$type === 'app.bsky.feed.defs#threadViewPost' && 'replies' in threadResponse.data.thread) {
-      const thread = threadResponse.data.thread as any;
+    // List all posts from our repo and filter for replies to this thread
+    const mainPostUri = parsed.mainPost.metadata.postUri;
+    const listResponse = await agent.api.com.atproto.repo.listRecords({
+      repo: myDid,
+      collection: 'app.bsky.feed.post',
+      limit: 100,
+    });
 
-      // Collect all my replies in order
-      function collectMyReplies(post: any) {
-        if (!post.replies || post.replies.length === 0) return;
-
-        for (const reply of post.replies) {
-          if (reply.$type === 'app.bsky.feed.defs#threadViewPost') {
-            if (reply.post.author.did === myDid) {
-              existingReplies.push({
-                text: reply.post.record.text,
-                uri: reply.post.uri,
-                cid: reply.post.cid
-              });
-            }
-            collectMyReplies(reply);
-          }
-        }
+    // Filter for replies to our main post or its replies
+    for (const record of listResponse.data.records) {
+      const post = record.value as any;
+      if (post.reply?.parent?.uri === mainPostUri || post.reply?.root?.uri === mainPostUri) {
+        existingReplies.push({
+          text: post.text,
+          uri: record.uri,
+          cid: record.cid,
+        });
       }
-
-      collectMyReplies(thread);
     }
+
+    // Sort by creation time
+    existingReplies.sort((a, b) => {
+      const aTime = a.uri.split('/').pop()!;
+      const bTime = b.uri.split('/').pop()!;
+      return aTime.localeCompare(bTime);
+    });
   }
 
   console.log(`📊 Found ${existingReplies.length} existing replies, ${parsed.replies.length} in file`);
@@ -357,7 +367,8 @@ Examples:
   }
 
   // Authenticate
-  const agent = new BskyAgent({ service: 'https://bsky.social' });
+  const service = process.env.ATP_SERVICE || 'https://bsky.social';
+  const agent = new BskyAgent({ service });
 
   const identifier = process.env.BLUESKY_HANDLE;
   const password = process.env.BLUESKY_PASSWORD || process.env.BLUESKY_APP_PASSWORD;

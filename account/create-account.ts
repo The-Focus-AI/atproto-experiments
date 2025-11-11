@@ -17,9 +17,12 @@ import { config } from 'dotenv';
 config();
 
 async function createAccount() {
+  // Get service endpoint from environment or use default
+  const service = process.env.ATP_SERVICE || 'https://bsky.social';
+
   // Initialize agent
   const agent = new BskyAgent({
-    service: 'https://bsky.social',
+    service,
   });
 
   // Account details
@@ -28,6 +31,7 @@ async function createAccount() {
   const password = process.argv[4] || `SecurePassword${Date.now()}!`;
 
   console.log('Creating account...');
+  console.log('Service:', service);
   console.log('Handle:', handle);
   console.log('Email:', email);
 

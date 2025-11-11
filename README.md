@@ -166,6 +166,32 @@ npm run firehose -- --limit=100
 
 ---
 
+### 🖥️ [PDS Server](pds-server/)
+
+Run your own AT Protocol Personal Data Server locally without Docker.
+
+```bash
+# Setup (generates config and secrets)
+cd pds-server && ./setup.sh example.test admin@example.com
+
+# Start the server
+npm run pds-server
+
+# Test it
+curl http://localhost:3000/xrpc/_health
+```
+
+**Features:**
+- Runs directly with Node.js/TypeScript
+- No Docker required
+- Invite codes disabled (open registration)
+- Local data storage
+- Full AT Protocol PDS implementation
+
+**Use cases:** Local development, testing, custom PDS deployment, learning AT Protocol internals
+
+---
+
 ### 👤 [Account Creation](account/)
 
 Programmatically create Bluesky accounts.

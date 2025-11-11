@@ -1,8 +1,8 @@
 ---
 title: My First Markdown Post
-postUri: at://did:plc:t3frizpydokirlftzvny544g/app.bsky.feed.post/3m5cf373tqu2q
-postUrl: https://bsky.app/profile/lord-byron-abuela.bsky.social/post/3m5cf373tqu2q
 createdAt: 2025-11-10T19:44:27.278Z
+postUri: at://did:plc:6uhhxbizdkfbfsdack47ewz7/app.bsky.feed.post/3m5d5kdrfcc2f
+postUrl: https://bsky.app/profile/alice.example.test/post/3m5d5kdrfcc2f
 ---
 
 This is my first post using markdown sync!
@@ -38,3 +38,6 @@ I hope it is
 
 Here is a link to my website https://willschenk.com
 
+---
+
+And a final one!
