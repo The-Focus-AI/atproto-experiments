@@ -198,6 +198,39 @@ curl http://localhost:3000/xrpc/_health
 
 ---
 
+### 🌐 [Website Generator](website/)
+
+Personal blog/website generator with content stored in your ATProto PDS. Write in markdown, sync to Bluesky, generate beautiful static sites.
+
+```bash
+# Setup and configure
+cd website && npm install && npm run build
+npm run website view          # Pull content from PDS
+
+# Create content locally
+vim content/articles/my-post.md
+vim content/microposts/2025-11-11.md
+
+# Publish to PDS
+npm run website post
+
+# Generate static site from PDS (works anywhere!)
+npm run website generate
+```
+
+**Features:**
+- **PDS-First Architecture** - Generate site from any machine with just credentials
+- **Blob CDN Integration** - Images stored as blobs, served from Bluesky CDN
+- **Keyboard Navigation** - Arrow keys navigate between microposts
+- **Themeable Design** - Mix-and-match color palettes and font systems
+- **Obsidian Compatible** - Works with daily notes and relative paths
+- **Live Comments** - Dynamically load Bluesky comments on posts
+- **Article Announcements** - Auto-post to Bluesky feed when publishing
+
+**Use cases:** Personal blogs, digital gardens, portfolios, documentation sites, content publishing
+
+---
+
 ### 👤 [Account Creation](account/)
 
 Programmatically create Bluesky accounts.

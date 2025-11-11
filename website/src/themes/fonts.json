@@ -1,0 +1,67 @@
+{
+  "system": {
+    "name": "System UI",
+    "body": "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    "heading": "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+  },
+  "transitional": {
+    "name": "Transitional (Charter)",
+    "body": "Charter, 'Bitstream Charter', 'Sitka Text', Cambria, serif",
+    "heading": "Charter, 'Bitstream Charter', 'Sitka Text', Cambria, serif"
+  },
+  "oldstyle": {
+    "name": "Old Style (Iowan)",
+    "body": "'Iowan Old Style', 'Palatino Linotype', 'URW Palladio L', P052, serif",
+    "heading": "'Iowan Old Style', 'Palatino Linotype', 'URW Palladio L', P052, serif"
+  },
+  "humanist": {
+    "name": "Humanist (Seravek)",
+    "body": "Seravek, 'Gill Sans Nova', Ubuntu, Calibri, 'DejaVu Sans', source-sans-pro, sans-serif",
+    "heading": "Seravek, 'Gill Sans Nova', Ubuntu, Calibri, 'DejaVu Sans', source-sans-pro, sans-serif"
+  },
+  "geometric-humanist": {
+    "name": "Geometric Humanist (Avenir)",
+    "body": "Avenir, Montserrat, Corbel, 'URW Gothic', source-sans-pro, sans-serif",
+    "heading": "Avenir, Montserrat, Corbel, 'URW Gothic', source-sans-pro, sans-serif"
+  },
+  "classical-humanist": {
+    "name": "Classical Humanist (Optima)",
+    "body": "Optima, Candara, 'Noto Sans', source-sans-pro, sans-serif",
+    "heading": "Optima, Candara, 'Noto Sans', source-sans-pro, sans-serif"
+  },
+  "neo-grotesque": {
+    "name": "Neo-Grotesque (Inter)",
+    "body": "Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif",
+    "heading": "Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif"
+  },
+  "monospace": {
+    "name": "Monospace Code",
+    "body": "ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace",
+    "heading": "ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace"
+  },
+  "industrial": {
+    "name": "Industrial (Bahnschrift)",
+    "body": "Bahnschrift, 'DIN Alternate', 'Franklin Gothic Medium', 'Nimbus Sans Narrow', sans-serif-condensed, sans-serif",
+    "heading": "Bahnschrift, 'DIN Alternate', 'Franklin Gothic Medium', 'Nimbus Sans Narrow', sans-serif-condensed, sans-serif"
+  },
+  "slab-serif": {
+    "name": "Slab Serif (Rockwell)",
+    "body": "Rockwell, 'Rockwell Nova', 'Roboto Slab', 'DejaVu Serif', 'Sitka Small', serif",
+    "heading": "Rockwell, 'Rockwell Nova', 'Roboto Slab', 'DejaVu Serif', 'Sitka Small', serif"
+  },
+  "antique": {
+    "name": "Antique (Superclarendon)",
+    "body": "Superclarendon, 'Bookman Old Style', 'URW Bookman', 'URW Bookman L', 'Georgia Pro', Georgia, serif",
+    "heading": "Superclarendon, 'Bookman Old Style', 'URW Bookman', 'URW Bookman L', 'Georgia Pro', Georgia, serif"
+  },
+  "didone": {
+    "name": "Didone (Didot)",
+    "body": "Didot, 'Bodoni MT', 'Noto Serif Display', 'URW Palladio L', P052, Sylfaen, serif",
+    "heading": "Didot, 'Bodoni MT', 'Noto Serif Display', 'URW Palladio L', P052, Sylfaen, serif"
+  },
+  "handwritten": {
+    "name": "Handwritten (Bradley Hand)",
+    "body": "'Bradley Hand', 'Apple Chancery', 'URW Chancery L', cursive",
+    "heading": "'Bradley Hand', 'Apple Chancery', 'URW Chancery L', cursive"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "@atproto-experiments/website",
+  "version": "1.0.0",
+  "description": "Personal blog/website with content stored in ATProto PDS",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "website": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "website": "tsx src/index.ts"
+  },
+  "keywords": [
+    "atproto",
+    "bluesky",
+    "blog",
+    "static-site-generator"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@atproto/api": "^0.13.20",
+    "dotenv": "^16.4.7",
+    "gray-matter": "^4.0.3",
+    "marked": "^16.0.0",
+    "mime-types": "^2.1.35"
+  },
+  "devDependencies": {
+    "@types/mime-types": "^2.1.4",
+    "@types/node": "^22.10.6",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

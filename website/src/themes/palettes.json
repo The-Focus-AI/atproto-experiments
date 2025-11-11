@@ -1,0 +1,80 @@
+{
+  "light": {
+    "name": "Light",
+    "colors": {
+      "bg": "#ffffff",
+      "surface": "#f8f9fa",
+      "text": "#1a1a1a",
+      "text-secondary": "#6c757d",
+      "primary": "#0066cc",
+      "primary-hover": "#0052a3",
+      "border": "#dee2e6",
+      "hover-bg": "#f1f3f5"
+    }
+  },
+  "dark": {
+    "name": "Dark",
+    "colors": {
+      "bg": "#0d1117",
+      "surface": "#161b22",
+      "text": "#c9d1d9",
+      "text-secondary": "#8b949e",
+      "primary": "#58a6ff",
+      "primary-hover": "#79c0ff",
+      "border": "#30363d",
+      "hover-bg": "#1f2428"
+    }
+  },
+  "warm": {
+    "name": "Warm",
+    "colors": {
+      "bg": "#fffff8",
+      "surface": "#f8f4ed",
+      "text": "#1a1a1a",
+      "text-secondary": "#555555",
+      "primary": "#8b4513",
+      "primary-hover": "#6b3410",
+      "border": "#d4c5b0",
+      "hover-bg": "#f0ebe0"
+    }
+  },
+  "ocean": {
+    "name": "Ocean",
+    "colors": {
+      "bg": "#f0f9ff",
+      "surface": "#e0f2fe",
+      "text": "#0c4a6e",
+      "text-secondary": "#475569",
+      "primary": "#0284c7",
+      "primary-hover": "#0369a1",
+      "border": "#bae6fd",
+      "hover-bg": "#dbeafe"
+    }
+  },
+  "forest": {
+    "name": "Forest",
+    "colors": {
+      "bg": "#f0fdf4",
+      "surface": "#dcfce7",
+      "text": "#064e3b",
+      "text-secondary": "#475569",
+      "primary": "#059669",
+      "primary-hover": "#047857",
+      "border": "#a7f3d0",
+      "hover-bg": "#d1fae5"
+    }
+  },
+  "sunset": {
+    "name": "Sunset",
+    "colors": {
+      "bg": "#fff7ed",
+      "surface": "#ffedd5",
+      "text": "#7c2d12",
+      "text-secondary": "#78350f",
+      "primary": "#ea580c",
+      "primary-hover": "#c2410c",
+      "border": "#fed7aa",
+      "hover-bg": "#ffe4cc"
+    }
+  }
+}
