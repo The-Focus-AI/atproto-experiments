@@ -146,14 +146,20 @@ npm run pds-sync unpack pds-exports/repo-*.car
 Real-time media downloading from the Bluesky firehose.
 
 ```bash
-# Download all media
+# Download all media (default: ./firehose-blobs)
 npm run firehose
+
+# Custom output directory
+npm run firehose ./my-media
 
 # Images only
 npm run firehose -- --images-only
 
 # First 100 files
 npm run firehose -- --limit=100
+
+# Combine options
+npm run firehose ./my-media --images-only --limit=50
 ```
 
 **Features:**
