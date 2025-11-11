@@ -11,6 +11,8 @@
     "pds-sync": "tsx pds-sync/sync.ts",
     "firehose": "tsx firehose/firehose-blobs.ts",
     "md-sync": "tsx markdown-sync/markdown-sync.ts",
+    "job-poster": "tsx job-queue/poster.ts",
+    "job-listener": "tsx job-queue/listener.ts",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

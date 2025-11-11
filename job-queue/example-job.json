@@ -1,0 +1,7 @@
+{
+  "type": "echo",
+  "data": {
+    "message": "Hello from job queue!",
+    "timestamp": "2025-11-10"
+  }
+}

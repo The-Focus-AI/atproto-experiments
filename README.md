@@ -1,144 +1,220 @@
 # AT Protocol Examples
 
-Comprehensive TypeScript test cases for exploring the AT Protocol (ATProto) and Bluesky social network API.
-
-## TL;DR - Get Started in 2 Commands
-
-```bash
-npm install && npm run setup
-npm test
-```
-
-That's it! The setup wizard will create your Bluesky account and configure everything automatically.
-
----
-
-## Overview
-
-This project provides a complete testing suite to help you understand and experiment with the AT Protocol, which powers Bluesky. It includes examples for authentication, posting, messaging, profile management, blob storage, and more.
-
-## Features
-
-✨ **All 56 tests passing!** The test suite covers all major AT Protocol features:
-
-1. **Authentication** - Account login, session management, token handling
-2. **Posting** - Create posts, replies, quotes, with mentions and hashtags
-3. **Thread Retrieval** - Get posts, comments, timelines, and feeds
-4. **Attachments** - Upload/download images and blobs
-5. **Profile Management** - View/edit profiles, followers, follows
-6. **Direct Messages** - ✅ **Full working DM implementation using chat.bsky API!**
-7. **Sync Operations** - Repository sync, blob management, directory sync
-8. **Advanced Features** - Custom feeds, lists, moderation, search
+Practical TypeScript examples for building with the AT Protocol and Bluesky.
 
 ## Quick Start
 
-### One-Command Setup (Easiest!)
-
 ```bash
-# Install dependencies
-npm install
-
-# Run the interactive setup wizard
-npm run setup
+npm install && npm run setup
 ```
 
-This will:
-1. ✅ Create a new Bluesky account (or let you enter existing credentials)
-2. ✅ Automatically create your `.env` file
-3. ✅ Make a test post to verify everything works
-4. ✅ Show you your profile link
-
-**That's it!** You're ready to run tests.
+The setup wizard will create your Bluesky account and configure everything automatically.
 
 ---
 
-### Manual Setup (Alternative)
+## Examples
 
-If you prefer to set things up manually:
+This project demonstrates powerful use cases for AT Protocol, from syncing files to building distributed systems.
 
-#### 1. Install Dependencies
+### 📁 [Directory Sync](directory-sync/)
+
+Sync entire directories to the AT Protocol blob store with incremental uploads, version tracking, and web viewer.
+
+```bash
+# Upload a directory (only uploads changed files)
+npm run directory-sync upload ./my-documents
+
+# List all synced directories
+npm run directory-sync list
+
+# Download anywhere
+npm run directory-sync download
+
+# Generate web viewer
+npm run web-links
+```
+
+**Features:**
+- Incremental uploads (skip unchanged files)
+- Version history via multiple records
+- Bauhaus-styled web gallery viewer
+- Download blobs directly from CDN
+
+**Use cases:** Backups, config sharing, static site deployment, file versioning
+
+---
+
+### 📝 [Markdown Sync](markdown-sync/)
+
+Write Bluesky posts and threads as markdown files, publish them, and sync replies back.
+
+```bash
+# Write a post in markdown
+cat > post.md <<EOF
+---
+title: My Post
+---
+
+Main post content here.
+
+---
+
+Reply 1
+
+---
+
+Reply 2
+EOF
+
+# Publish to Bluesky
+npm run md-sync post post.md
+
+# Sync external replies
+npm run md-sync sync post.md
+```
+
+**Features:**
+- Draft posts offline in markdown
+- Thread posts automatically
+- Version control posts with git
+- Fetch replies from others
+- Clean files (only main post URI stored)
+
+**Use cases:** Blog post threads, content planning, conversation archiving
+
+---
+
+### ⚙️ [Job Queue](job-queue/)
+
+Distributed job queue using AT Protocol custom records (lexicon-based) - jobs stored in your repo without cluttering your feed!
+
+```bash
+# Terminal 1: Start a worker
+npm run job-listener 10
+
+# Terminal 2: Submit a job
+echo '{"type":"echo","data":{"message":"Hello"}}' > job.json
+npm run job-poster post job.json
+
+# Check status
+npm run job-poster list
+
+# Download results and cleanup
+npm run job-poster finish at://... ./results
+```
+
+**Features:**
+- No central server (fully distributed)
+- Jobs hidden in repo (not in feed)
+- Instant queries (no search indexing)
+- Blob support for file results
+- Extensible job handlers
+- Multi-worker parallelization
+- Watch multiple accounts
+
+**Use cases:** Image processing, data analysis, webhooks, background tasks, distributed computing, job services
+
+---
+
+### 🔄 [PDS Sync](pds-sync/)
+
+Download and unpack your entire Personal Data Server repository as JSON files.
+
+```bash
+# Download everything
+npm run pds-sync
+
+# List contents
+npm run pds-sync list pds-exports/repo-*.car
+
+# Unpack specific export
+npm run pds-sync unpack pds-exports/repo-*.car
+```
+
+**Features:**
+- Complete backup of your PDS
+- Organized JSON files by collection
+- Download all blobs (images, etc.)
+- Perfect for account migration
+
+**Use cases:** Account backups, data analysis, migration, archival
+
+---
+
+### 🔥 [Firehose](firehose/)
+
+Real-time media downloading from the Bluesky firehose.
+
+```bash
+# Download all media
+npm run firehose
+
+# Images only
+npm run firehose -- --images-only
+
+# First 100 files
+npm run firehose -- --limit=100
+```
+
+**Features:**
+- Real-time streaming from `wss://bsky.network`
+- Auto-downloads images and videos
+- Saves metadata for each file
+- Duplicate detection
+
+**Use cases:** Media archival, network monitoring, training data collection
+
+---
+
+### 👤 [Account Creation](account/)
+
+Programmatically create Bluesky accounts.
+
+```bash
+npm run create-account handle.bsky.social email@example.com password123
+```
+
+**Features:**
+- Automated account creation
+- Returns DID and tokens
+- Helpful error messages
+
+**Use cases:** Testing, automation, bot accounts, onboarding flows
+
+---
+
+## Setup
+
+### Automatic (Recommended)
+
 ```bash
 npm install
+npm run setup
 ```
 
-#### 2. Create Account
+### Manual
 
-**Option A: Via Web**
-Visit [bsky.app](https://bsky.app) and sign up.
-
-**Option B: Via Script**
 ```bash
-npm run create-account your-handle.bsky.social your-email@example.com YourPassword123!
-```
-
-#### 3. Configure Environment
-```bash
+npm install
 cp .env.example .env
-# Edit .env and add your credentials:
+# Edit .env with your credentials:
 # BLUESKY_HANDLE=your-handle.bsky.social
 # BLUESKY_PASSWORD=your-password
 ```
 
 ---
 
-## Running Tests
-
-```bash
-# Run all tests
-npm test
-
-# Run in watch mode
-npm run test:watch
-
-# Run with UI
-npm run test:ui
-
-# Run specific test file
-npm test -- tests/01-authentication.test.ts
-```
-
-
-## Test Structure
-
-- [tests/01-authentication.test.ts](tests/01-authentication.test.ts) - Login, sessions, token management
-- [tests/02-posting.test.ts](tests/02-posting.test.ts) - Creating posts, replies, quotes
-- [tests/03-thread-retrieval.test.ts](tests/03-thread-retrieval.test.ts) - Getting threads, feeds, likes
-- [tests/04-attachments.test.ts](tests/04-attachments.test.ts) - Upload/download images and blobs
-- [tests/05-profile.test.ts](tests/05-profile.test.ts) - Profile operations, follows, search
-- [tests/06-direct-messages.test.ts](tests/06-direct-messages.test.ts) - ✅ Working DM functionality with chat.bsky API
-- [tests/07-sync-operations.test.ts](tests/07-sync-operations.test.ts) - Repo sync, blob management
-- [tests/08-advanced-features.test.ts](tests/08-advanced-features.test.ts) - Feeds, lists, moderation
-
-## Examples
-
-This project includes several standalone examples demonstrating advanced AT Protocol features:
-
-### 📁 [Directory Sync](directory-sync/)
-Sync entire directories to AT Protocol blob store with incremental uploads and web viewer.
-
-### 🔄 [PDS Sync](pds-sync/)
-Download and unpack your entire Personal Data Server repository.
-
-### 🔥 [Firehose](firehose/)
-Real-time media downloading from the Bluesky firehose.
-
-### 👤 [Account Creation](account/)
-Programmatic Bluesky account creation.
-
-### 📝 [Markdown Sync](markdown-sync/)
-Write Bluesky posts and threads as markdown files, publish them, and sync replies.
-
-See each folder's README for detailed documentation.
-
-## Examples
+## API Examples
 
 ### Basic Post
 
 ```typescript
-import { createAuthenticatedClient } from './tests/utils/client';
+import { BskyAgent } from '@atproto/api';
 
-const agent = await createAuthenticatedClient();
-const post = await agent.post({
+const agent = new BskyAgent({ service: 'https://bsky.social' });
+await agent.login({ identifier: 'handle', password: 'pass' });
+
+await agent.post({
   text: 'Hello from AT Protocol!',
   createdAt: new Date().toISOString(),
 });
@@ -163,30 +239,30 @@ await agent.post({
 });
 ```
 
-### Get Profile
+### Thread Replies
 
 ```typescript
-const profile = await agent.getProfile({
-  actor: 'bsky.app',
-});
+const parent = await agent.post({ text: 'Parent post' });
 
-console.log(profile.data.displayName);
-console.log(profile.data.followersCount);
+await agent.post({
+  text: 'Reply',
+  reply: {
+    root: { uri: parent.uri, cid: parent.cid },
+    parent: { uri: parent.uri, cid: parent.cid },
+  },
+});
 ```
 
-### Send Direct Message
+### Send DM
 
 ```typescript
-// Get target user's DID
 const profile = await agent.getProfile({ actor: 'user.bsky.social' });
 
-// Get or create conversation
 const convo = await agent.api.chat.bsky.convo.getConvoForMembers(
   { members: [profile.data.did] },
   { headers: { 'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat' } }
 );
 
-// Send message
 await agent.api.chat.bsky.convo.sendMessage(
   {
     convoId: convo.data.convo.id,
@@ -199,53 +275,51 @@ await agent.api.chat.bsky.convo.sendMessage(
 );
 ```
 
-**Note:** The `atproto-proxy` header is required to route DM requests to Bluesky's chat service.
+---
 
 ## Key Concepts
 
-### AT Protocol URIs
+### AT URIs
 
-Records are identified by AT URIs in the format:
+Records are identified by:
 ```
 at://did:plc:xxx/app.bsky.feed.post/yyy
 ```
 
-Where:
-- `did:plc:xxx` is the user's DID (Decentralized Identifier)
-- `app.bsky.feed.post` is the collection/record type
-- `yyy` is the record key (rkey)
+- `did:plc:xxx` - User's Decentralized Identifier
+- `app.bsky.feed.post` - Collection type
+- `yyy` - Record key (rkey)
 
 ### Blobs
 
-Binary data (images, files) are stored as blobs and referenced by CID (Content Identifier). Blobs must be uploaded before being referenced in posts.
+Binary data (images, files) stored as blobs, referenced by CID (Content Identifier).
 
 ### Repository
 
-Each user has a signed data repository containing all their records. The repo can be synced and exported.
+Each user has a signed data repository containing all their records. Can be synced and exported.
 
-## Troubleshooting
+---
 
-### "BLUESKY_HANDLE and BLUESKY_PASSWORD must be set"
+## Tests
 
-Your `.env` file is missing or incomplete. Run:
+This project includes comprehensive test coverage (56 passing tests):
+
 ```bash
-npm run setup
+npm test                    # Run all tests
+npm run test:watch          # Watch mode
+npm run test:ui             # UI mode
 ```
 
-### "Account creation failed"
+Test files cover:
+- Authentication & sessions
+- Posting & threading
+- Attachments & blobs
+- Profiles & follows
+- Direct messages
+- Repository sync
+- Advanced features
 
-Common issues:
-- **Handle already taken** - Try a different handle
-- **Email already used** - Use a different email
-- **Rate limited** - Wait a few minutes and try again
-- **Network error** - Check your internet connection
-
-### Tests are failing
-
-Make sure:
-1. Your `.env` file exists and has valid credentials
-2. You can login at [bsky.app](https://bsky.app) with those credentials
-3. Your internet connection is working
+---
 
 ## Resources
 

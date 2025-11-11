@@ -1,0 +1,47 @@
+{
+  "lexicon": 1,
+  "id": "ai.focus.jobqueue.job",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A job in the distributed job queue",
+      "key": "any",
+      "record": {
+        "type": "object",
+        "required": ["payload", "status", "createdAt"],
+        "properties": {
+          "payload": {
+            "type": "object",
+            "description": "The job payload containing type and data"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "working", "success", "failed"],
+            "description": "Current status of the job"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Time the job was created"
+          },
+          "workerDid": {
+            "type": "string",
+            "description": "DID of the worker processing this job"
+          },
+          "result": {
+            "type": "object",
+            "description": "Result data from completed job"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if job failed"
+          },
+          "blobRef": {
+            "type": "blob",
+            "description": "Optional blob result"
+          }
+        }
+      }
+    }
+  }
+}

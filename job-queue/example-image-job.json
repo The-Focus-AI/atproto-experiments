@@ -1,0 +1,10 @@
+{
+  "type": "image-gen",
+  "data": {
+    "text": "AT Protocol Rocks!",
+    "width": 600,
+    "height": 300,
+    "bgColor": "#2d3748",
+    "textColor": "#63b3ed"
+  }
+}
