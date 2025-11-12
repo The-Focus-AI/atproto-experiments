@@ -1,7 +1,7 @@
 {
   "name": "atprot-examples",
   "version": "1.0.0",
-  "description": "TypeScript test cases for exploring AT Protocol",
+  "description": "Practical TypeScript examples for building with AT Protocol and Bluesky - job queues, static sites, file sync, firehose, and more",
   "type": "module",
   "scripts": {
     "setup": "tsx scripts/setup.ts",
