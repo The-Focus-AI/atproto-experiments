@@ -1,6 +1,6 @@
 # Bluesky PDS Explorer - OAuth Test Page
 
-A static HTML/CSS/JavaScript application for exploring Bluesky Personal Data Server (PDS) data using proper OAuth authentication with PKCE.
+A modular, static HTML/CSS/JavaScript application for exploring Bluesky Personal Data Server (PDS) data using proper OAuth authentication with PKCE.
 
 Based on the [official Bluesky cookbook vanillajs-oauth-web-app example](https://github.com/bluesky-social/cookbook/tree/main/vanillajs-oauth-web-app).
 
@@ -9,10 +9,29 @@ Based on the [official Bluesky cookbook vanillajs-oauth-web-app example](https:/
 - **Proper OAuth Flow**: Uses `@atproto/oauth-client-browser` for secure authentication
 - **PKCE Support**: Implements Proof Key for Code Exchange for enhanced security
 - **DPoP Tokens**: Demonstrates Proof of Possession for token binding
+- **CAR File Parsing**: Download and parse repository CAR files in the browser to discover ALL collections
 - **PDS Browsing**: Explore all record collections in your PDS
-- **Blob Viewer**: Inline preview of images, avatars, and banners
+- **Blob Support**: View metadata for images, avatars, banners, and custom blob types
 - **No Backend Required**: Completely static - runs in the browser
+- **Modular Architecture**: Clean separation of concerns with ES modules
 - **Localhost Development**: Uses special localhost client ID format for easy local testing
+
+## Architecture
+
+The codebase is organized into clean, reusable modules:
+
+- **`index.html`**: Minimal HTML structure and styles (440 lines, down from 976!)
+- **`app.js`**: Main application logic and UI management
+- **`oauth-client.js`**: OAuth authentication handling with AT Protocol
+- **`car-parser.js`**: Browser-compatible CAR file parsing using IPLD libraries
+
+### Why Modular?
+
+The previous implementation had ~560 lines of JavaScript embedded in the HTML. The new structure:
+- Makes code easier to read, test, and maintain
+- Follows web standards with ES modules
+- Separates concerns (auth, parsing, UI)
+- Enables code reuse across projects
 
 ## Quick Start
 
@@ -108,10 +127,30 @@ Using `https://bsky.social` as the `handleResolver` will send user handles and I
 
 ## Technical Details
 
-- **No Dependencies**: Uses ES modules and importmaps
+### Libraries
+
+- **`@atproto/oauth-client-browser`**: OAuth PKCE flow for AT Protocol
+- **`@atproto/api`**: AT Protocol API client
+- **`@ipld/car`**: Browser-compatible CAR file reader (IPLD standard)
+- **`@ipld/dag-cbor`**: CBOR decoder for AT Protocol records
+
+### Implementation
+
+- **No Build Step**: Uses ES modules and importmaps
 - **CDN**: Libraries loaded from esm.sh
 - **Storage**: OAuth state in IndexedDB via BrowserOAuthClient
 - **Standards**: OAuth 2.1, PKCE (RFC 7636), DPoP (RFC 9449)
+
+### CAR File Parsing
+
+The app can download your entire repository as a CAR (Content Addressable aRchive) file and parse it in the browser using the same IPLD libraries that power IPFS and AT Protocol:
+
+1. Downloads repo via `com.atproto.sync.getRepo`
+2. Parses CAR format using `@ipld/car`
+3. Decodes CBOR blocks using `@ipld/dag-cbor`
+4. Extracts all `$type` fields to discover collections
+
+This is the same approach used by `@pds-sync/sync.ts` but runs entirely in the browser without Node.js dependencies.
 
 ## Resources
 

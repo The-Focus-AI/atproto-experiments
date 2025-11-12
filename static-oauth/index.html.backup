@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bluesky PDS Explorer - OAuth Test</title>
+    <script type="importmap">
+    {
+      "imports": {
+        "@atproto/oauth-client-browser": "https://esm.sh/@atproto/oauth-client-browser@0.3.29",
+        "@atproto/api": "https://esm.sh/@atproto/api@0.16.4",
+        "@ipld/car": "https://esm.sh/@ipld/car@5.3.2",
+        "@ipld/dag-cbor": "https://esm.sh/@ipld/dag-cbor@9.2.1"
+      }
+    }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inconsolata', monospace;
+            background: #1a1a1a;
+            min-height: 100vh;
+            padding: 10px;
+            color: #e0e0e0;
+            font-size: 15px;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        header {
+            background: #2a2a2a;
+            border-radius: 3px;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .auth-section {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex: 1;
+        }
+
+        input[type="text"] {
+            padding: 6px 12px;
+            border: 1px solid #444;
+            background: #333;
+            color: #e0e0e0;
+            border-radius: 3px;
+            font-size: 14px;
+            font-family: 'Inconsolata', monospace;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 6px 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Inconsolata', monospace;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .status {
+            padding: 6px 12px;
+            border-radius: 3px;
+            font-size: 12px;
+            background: #333;
+        }
+
+        .status.error {
+            background: #4a1a1a;
+            color: #ff6b6b;
+        }
+
+        .status.success {
+            background: #1a4a1a;
+            color: #51cf66;
+        }
+
+        .status.info {
+            background: #1a2a4a;
+            color: #4dabf7;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr 2fr;
+            gap: 10px;
+            height: calc(100vh - 80px);
+        }
+
+        .panel {
+            background: #2a2a2a;
+            border-radius: 3px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+        }
+
+        .panel h2 {
+            color: #fff;
+            margin-bottom: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            border-bottom: 1px solid #444;
+            padding-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .collection-list {
+            list-style: none;
+        }
+
+        .collection-item {
+            padding: 8px 10px;
+            margin-bottom: 3px;
+            background: #333;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 12px;
+            border-left: 2px solid transparent;
+        }
+
+        .collection-item:hover {
+            background: #3a3a3a;
+            border-left-color: #667eea;
+        }
+
+        .collection-item.active {
+            background: #667eea;
+            color: white;
+            border-left-color: #667eea;
+        }
+
+        .records-list {
+            list-style: none;
+        }
+
+        .record-item {
+            padding: 10px;
+            margin-bottom: 4px;
+            background: #333;
+            border-radius: 2px;
+            border-left: 2px solid #667eea;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .record-item:hover {
+            background: #3a3a3a;
+            border-left-width: 3px;
+        }
+
+        .record-item.active {
+            background: #3a3a3a;
+            border-left-color: #51cf66;
+            border-left-width: 3px;
+        }
+
+        .record-key {
+            font-weight: 600;
+            color: #e0e0e0;
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+
+        .record-type {
+            font-size: 10px;
+            color: #999;
+        }
+
+        .blob-indicator {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 1px 5px;
+            border-radius: 2px;
+            font-size: 9px;
+            margin-left: 5px;
+        }
+
+        .detail-view {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .blob-preview {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #444;
+        }
+
+        .blob-preview img {
+            max-width: 100%;
+            border-radius: 2px;
+            margin-top: 8px;
+        }
+
+        .blob-list {
+            list-style: none;
+            margin-top: 8px;
+        }
+
+        .blob-item {
+            padding: 8px;
+            background: #333;
+            border-radius: 2px;
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
+
+        .blob-item a {
+            color: #4dabf7;
+            text-decoration: none;
+        }
+
+        .blob-item a:hover {
+            text-decoration: underline;
+        }
+
+        pre {
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 12px;
+            border-radius: 2px;
+            overflow-x: auto;
+            font-size: 11px;
+            line-height: 1.4;
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #333;
+            font-family: 'Inconsolata', monospace;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .spinner {
+            border: 2px solid #333;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 11px;
+        }
+
+        .stat-item {
+            background: #333;
+            padding: 6px 10px;
+            border-radius: 2px;
+            flex: 1;
+        }
+
+        .stat-label {
+            color: #999;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #fff;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        .user-info {
+            background: #333;
+            padding: 8px 12px;
+            border-radius: 2px;
+            font-size: 11px;
+            color: #999;
+        }
+
+        .user-info strong {
+            color: #4dabf7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🦋 Bluesky PDS Explorer</h1>
+            <div class="auth-section">
+                <input
+                    type="text"
+                    id="handleInput"
+                    placeholder="Enter your handle (e.g., username.bsky.social)"
+                    value="wschenk.bsky.social"
+                >
+                <button id="loginBtn">Login with Bluesky</button>
+                <button id="logoutBtn" style="display: none;">Logout</button>
+                <button id="scanCarBtn" style="display: none;">📦 Download CAR</button>
+            </div>
+            <div id="status"></div>
+            <div id="userInfo" style="display: none;" class="user-info"></div>
+        </header>
+
+        <div class="main-content">
+            <div class="panel">
+                <h2>Collections</h2>
+                <div id="addCollectionForm" style="display: none; margin-bottom: 15px;">
+                    <input
+                        type="text"
+                        id="customCollectionInput"
+                        placeholder="e.g., ai.focus.sync.directory"
+                        style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 6px; font-size: 12px;"
+                    >
+                    <button id="addCollectionBtn" style="width: 100%; margin-top: 5px; padding: 8px;">Add Custom Collection</button>
+                </div>
+                <div id="collectionsContainer">
+                    <div class="loading">
+                        <p>Login to browse your PDS data</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Records</h2>
+                <div class="stats" id="stats" style="display: none;"></div>
+                <div id="recordsContainer">
+                    <div class="loading">
+                        <p>Select a collection to view records</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="detail-view">
+                    <div class="detail-header">
+                        <h2>Details</h2>
+                        <button id="copyBtn" style="display: none;">Copy JSON</button>
+                    </div>
+                    <div id="detailContainer">
+                        <div class="loading">
+                            <p>Select a record to view details</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PDSExplorer } from './app.js';
+
+        // OAuth client instance
+        let oauthClient = null;
+        let agent = null;
+        let session = null;
+        let currentCollection = null;
+        let currentRecord = null;
+
+        const elements = {
+            handleInput: document.getElementById('handleInput'),
+            loginBtn: document.getElementById('loginBtn'),
+            logoutBtn: document.getElementById('logoutBtn'),
+            scanCarBtn: document.getElementById('scanCarBtn'),
+            status: document.getElementById('status'),
+            userInfo: document.getElementById('userInfo'),
+            collectionsContainer: document.getElementById('collectionsContainer'),
+            recordsContainer: document.getElementById('recordsContainer'),
+            detailContainer: document.getElementById('detailContainer'),
+            copyBtn: document.getElementById('copyBtn'),
+            stats: document.getElementById('stats'),
+            addCollectionForm: document.getElementById('addCollectionForm'),
+            customCollectionInput: document.getElementById('customCollectionInput'),
+            addCollectionBtn: document.getElementById('addCollectionBtn')
+        };
+
+        // Common collection types in Bluesky
+        const COLLECTIONS = [
+            'app.bsky.feed.post',
+            'app.bsky.feed.like',
+            'app.bsky.feed.repost',
+            'app.bsky.graph.follow',
+            'app.bsky.graph.block',
+            'app.bsky.actor.profile',
+            'app.bsky.feed.threadgate',
+            'app.bsky.graph.list',
+            'app.bsky.graph.listitem',
+            'chat.bsky.actor.declaration'
+        ];
+
+        function showStatus(message, type = 'info') {
+            elements.status.textContent = message;
+            elements.status.className = `status ${type}`;
+            elements.status.style.display = 'block';
+        }
+
+        function hideStatus() {
+            elements.status.style.display = 'none';
+        }
+
+        function showLoading(container, message = 'Loading...') {
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        async function handleLogin() {
+            let handle = elements.handleInput.value.trim();
+            if (!handle) {
+                showStatus('Please enter your handle', 'error');
+                return;
+            }
+
+            // Clean the handle: remove @ symbol, invisible unicode characters, and extra whitespace
+            handle = handle
+                .replace(/^@/, '')
+                .replace(/[\u200B-\u200D\uFEFF\u202A-\u202E]/g, '') // Remove zero-width and directional chars
+                .replace(/\s+/g, '')
+                .toLowerCase();
+
+            if (!handle) {
+                showStatus('Please enter a valid handle', 'error');
+                return;
+            }
+
+            elements.loginBtn.disabled = true;
+            showStatus(`Resolving handle ${handle} via bsky.social...`, 'info');
+
+            try {
+                console.log('Attempting to sign in with handle:', handle);
+                console.log('Using handleResolver:', 'https://bsky.social');
+                console.log('Client ID:', clientId);
+
+                await oauthClient.signIn(handle, {
+                    signal: new AbortController().signal
+                });
+                // This will redirect - code after this won't execute
+                console.log('Never executed');
+            } catch (error) {
+                console.error('Login error details:', error);
+                showStatus(`Login failed: ${error.message}`, 'error');
+                elements.loginBtn.disabled = false;
+            }
+        }
+
+        async function handleLogout() {
+            if (session) {
+                await session.signOut();
+            }
+
+            agent = null;
+            session = null;
+
+            elements.loginBtn.style.display = 'inline-block';
+            elements.logoutBtn.style.display = 'none';
+            elements.handleInput.disabled = false;
+            elements.userInfo.style.display = 'none';
+            hideStatus();
+
+            elements.collectionsContainer.innerHTML = '<div class="loading"><p>Login to browse your PDS data</p></div>';
+            elements.recordsContainer.innerHTML = '<div class="loading"><p>Select a collection to view records</p></div>';
+            elements.detailContainer.innerHTML = '<div class="loading"><p>Select a record to view details</p></div>';
+            elements.stats.style.display = 'none';
+        }
+
+        async function discoverCollections() {
+            console.log('🔍 Discovering ALL collections via describeRepo...');
+
+            try {
+                // Try using describeRepo first - this should list all collections
+                const response = await agent.com.atproto.repo.describeRepo({
+                    repo: agent.did
+                });
+
+                if (response.data.collections && response.data.collections.length > 0) {
+                    console.log(`✓ Found ${response.data.collections.length} collections via describeRepo`);
+                    return response.data.collections.sort();
+                }
+            } catch (error) {
+                console.warn('describeRepo failed, falling back to manual discovery:', error.message);
+            }
+
+            // Fallback: try known collections manually
+            console.log('Using fallback collection discovery...');
+            const collections = new Set();
+
+            const knownCollections = [
+                'app.bsky.feed.post',
+                'app.bsky.feed.like',
+                'app.bsky.feed.repost',
+                'app.bsky.graph.follow',
+                'app.bsky.graph.block',
+                'app.bsky.actor.profile',
+                'app.bsky.feed.threadgate',
+                'app.bsky.graph.list',
+                'app.bsky.graph.listitem',
+                'chat.bsky.actor.declaration',
+                // Custom Focus.AI collections
+                'ai.focus.sync.directory',
+                'ai.focus.viewer.template',
+                'ai.thefocus.blog.article',
+                'ai.thefocus.blog.site',
+            ];
+
+            for (const collection of knownCollections) {
+                try {
+                    const response = await agent.com.atproto.repo.listRecords({
+                        repo: agent.did,
+                        collection: collection,
+                        limit: 1
+                    });
+                    if (response.data.records.length > 0 || response.success) {
+                        collections.add(collection);
+                        console.log(`  ✓ ${collection}`);
+                    }
+                } catch (error) {
+                    // Collection doesn't exist or is empty
+                }
+            }
+
+            return Array.from(collections).sort();
+        }
+
+        let discoveredCollections = [];
+
+        async function loadCollections() {
+            showLoading(elements.collectionsContainer, 'Discovering collections...');
+
+            try {
+                discoveredCollections = await discoverCollections();
+
+                console.log(`📊 Found ${discoveredCollections.length} collections`);
+
+                // Show the custom collection form
+                elements.addCollectionForm.style.display = 'block';
+
+                renderCollectionsList();
+            } catch (error) {
+                console.error('Error loading collections:', error);
+                elements.collectionsContainer.innerHTML = `<div class="loading"><p>Error loading collections: ${error.message}</p></div>`;
+            }
+        }
+
+        function renderCollectionsList() {
+            if (discoveredCollections.length === 0) {
+                elements.collectionsContainer.innerHTML = '<div class="loading"><p>No collections found. Add one manually above.</p></div>';
+                return;
+            }
+
+            const list = document.createElement('ul');
+            list.className = 'collection-list';
+
+            for (const collection of discoveredCollections) {
+                const item = document.createElement('li');
+                item.className = 'collection-item';
+                item.textContent = collection;
+                item.onclick = () => loadRecords(collection);
+                list.appendChild(item);
+            }
+
+            elements.collectionsContainer.innerHTML = '';
+            elements.collectionsContainer.appendChild(list);
+        }
+
+        function addCustomCollection() {
+            const collection = elements.customCollectionInput.value.trim();
+            if (!collection) return;
+
+            if (!discoveredCollections.includes(collection)) {
+                discoveredCollections.push(collection);
+                discoveredCollections.sort();
+                renderCollectionsList();
+            }
+
+            // Load the collection immediately
+            loadRecords(collection);
+            elements.customCollectionInput.value = '';
+        }
+
+        async function loadRecords(collection) {
+            currentCollection = collection;
+
+            // Update active collection
+            document.querySelectorAll('.collection-item').forEach(item => {
+                item.classList.toggle('active', item.textContent === collection);
+            });
+
+            showLoading(elements.recordsContainer, 'Loading records...');
+            elements.detailContainer.innerHTML = '<div class="loading"><p>Select a record to view details</p></div>';
+
+            try {
+                const response = await agent.com.atproto.repo.listRecords({
+                    repo: agent.did,
+                    collection: collection,
+                    limit: 100
+                });
+                const { records } = response.data;
+
+                // Show stats
+                elements.stats.innerHTML = `
+                    <div class="stat-item">
+                        <div class="stat-label">Collection</div>
+                        <div class="stat-value">${collection.split('.').pop()}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Records</div>
+                        <div class="stat-value">${records.length}</div>
+                    </div>
+                `;
+                elements.stats.style.display = 'flex';
+
+                if (records.length === 0) {
+                    elements.recordsContainer.innerHTML = '<div class="loading"><p>No records found</p></div>';
+                    return;
+                }
+
+                const list = document.createElement('ul');
+                list.className = 'records-list';
+
+                for (const record of records) {
+                    const item = document.createElement('li');
+                    item.className = 'record-item';
+
+                    const hasBlobs = record.value?.embed?.images ||
+                                    record.value?.avatar ||
+                                    record.value?.banner;
+
+                    const rkey = record.uri.split('/').pop();
+
+                    item.innerHTML = `
+                        <div class="record-key">
+                            ${getRecordLabel(record)}
+                            ${hasBlobs ? '<span class="blob-indicator">BLOB</span>' : ''}
+                        </div>
+                        <div class="record-type">${rkey}</div>
+                    `;
+
+                    item.onclick = () => showRecordDetail(record);
+                    list.appendChild(item);
+                }
+
+                elements.recordsContainer.innerHTML = '';
+                elements.recordsContainer.appendChild(list);
+            } catch (error) {
+                elements.recordsContainer.innerHTML = `<div class="loading"><p>Error: ${error.message}</p></div>`;
+            }
+        }
+
+        function getRecordLabel(record) {
+            const value = record.value;
+
+            if (value.text) {
+                return value.text.substring(0, 50) + (value.text.length > 50 ? '...' : '');
+            }
+            if (value.subject?.uri) {
+                return `→ ${value.subject.uri.split('/').pop()}`;
+            }
+            if (value.subject?.did) {
+                return `→ ${value.subject.did}`;
+            }
+            if (value.subject) {
+                return `→ ${JSON.stringify(value.subject).substring(0, 30)}...`;
+            }
+            if (value.displayName) {
+                return value.displayName;
+            }
+            if (value.name) {
+                return value.name;
+            }
+
+            return record.uri.split('/').pop();
+        }
+
+        function showRecordDetail(record) {
+            currentRecord = record;
+
+            // Update active record
+            document.querySelectorAll('.record-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget?.classList.add('active');
+
+            elements.copyBtn.style.display = 'inline-block';
+
+            let html = `<pre>${JSON.stringify(record, null, 2)}</pre>`;
+
+            // Check for blobs
+            const blobs = [];
+
+            if (record.value?.embed?.images) {
+                blobs.push(...record.value.embed.images.map(img => ({
+                    type: 'image',
+                    cid: img.image.ref?.$link || img.image.ref,
+                    alt: img.alt,
+                    mimeType: img.image.mimeType,
+                    size: img.image.size
+                })));
+            }
+
+            if (record.value?.avatar) {
+                blobs.push({
+                    type: 'avatar',
+                    cid: record.value.avatar.ref?.$link || record.value.avatar.ref,
+                    mimeType: record.value.avatar.mimeType,
+                    size: record.value.avatar.size
+                });
+            }
+
+            if (record.value?.banner) {
+                blobs.push({
+                    type: 'banner',
+                    cid: record.value.banner.ref?.$link || record.value.banner.ref,
+                    mimeType: record.value.banner.mimeType,
+                    size: record.value.banner.size
+                });
+            }
+
+            // Check for custom sync directory files
+            if (record.value?.files && Array.isArray(record.value.files)) {
+                blobs.push(...record.value.files.map(file => ({
+                    type: 'file',
+                    cid: file.blobRef?.ref?.$link || file.blobRef?.ref,
+                    path: file.path,
+                    mimeType: file.mimeType || file.blobRef?.mimeType,
+                    size: file.size || file.blobRef?.size
+                })));
+            }
+
+            // Check for blog article blobs
+            if (record.value?.blobs && Array.isArray(record.value.blobs)) {
+                blobs.push(...record.value.blobs.map(blob => ({
+                    type: 'article-image',
+                    cid: blob.blobRef?.ref?.$link || blob.blobRef?.ref,
+                    path: blob.relativePath,
+                    alt: blob.alt,
+                    mimeType: blob.mimeType || blob.blobRef?.mimeType,
+                    size: blob.blobRef?.size
+                })));
+            }
+
+            if (blobs.length > 0) {
+                const blobsHtml = blobs.map(blob => {
+                    const url = `${agent.pdsUrl}/xrpc/com.atproto.sync.getBlob?did=${agent.did}&cid=${blob.cid}`;
+                    const sizeStr = blob.size ? ` (${(blob.size / 1024).toFixed(1)}KB)` : '';
+                    const isImage = blob.mimeType?.startsWith('image/');
+
+                    return `
+                        <div class="blob-item" style="background: #333; padding: 10px; margin-bottom: 8px; border-radius: 2px;">
+                            <div style="margin-bottom: 8px;">
+                                <strong style="color: #fff; font-size: 11px; text-transform: uppercase;">${blob.type}</strong>
+                                ${blob.path ? `<div style="color: #4dabf7; font-size: 11px; margin-top: 2px;">${blob.path}</div>` : ''}
+                                ${blob.alt ? `<div style="color: #999; font-size: 10px; margin-top: 2px;">${blob.alt}</div>` : ''}
+                            </div>
+                            <div style="font-size: 10px; color: #999; font-family: 'Inconsolata', monospace;">
+                                <div><strong>CID:</strong> ${blob.cid}</div>
+                                ${blob.mimeType ? `<div><strong>Type:</strong> ${blob.mimeType}${sizeStr}</div>` : ''}
+                                <div style="margin-top: 4px;">
+                                    <a href="${url}" target="_blank" style="color: #51cf66; text-decoration: none;">🔗 Download</a>
+                                    ${isImage ? ` | <a href="${url}" target="_blank" style="color: #4dabf7; text-decoration: none;">👁️ View</a>` : ''}
+                                </div>
+                            </div>
+                            ${isImage ? `<img src="${url}" alt="${blob.alt || blob.type}" style="max-width: 100%; margin-top: 8px; border-radius: 2px; border: 1px solid #444;">` : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                html = `
+                    <div class="blob-preview">
+                        <h3 style="margin-bottom: 10px; color: #fff; font-size: 13px;">📎 Blobs (${blobs.length})</h3>
+                        ${blobsHtml}
+                    </div>
+                    ${html}
+                `;
+            }
+
+            elements.detailContainer.innerHTML = html;
+        }
+
+        // Build client ID based on environment (localhost vs production)
+        function buildClientID() {
+            const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+            if (isLocal) {
+                // Special localhost client ID format for development
+                // See https://atproto.com/specs/oauth#localhost-client-development
+                return `http://localhost?${new URLSearchParams({
+                    scope: "atproto transition:generic",
+                    redirect_uri: Object.assign(new URL(window.location.origin), { hostname: '127.0.0.1' }).href,
+                })}`;
+            }
+            // For production, you would host a client-metadata.json file
+            return `https://${window.location.host}/client-metadata.json`;
+        }
+
+        const clientId = buildClientID();
+
+        // Initialize OAuth client and check for existing session
+        async function init() {
+            try {
+                console.log('=== OAuth Client Initialization ===');
+                console.log('Client ID:', clientId);
+                console.log('Handle Resolver:', 'https://bsky.social');
+                console.log('Current URL:', window.location.href);
+
+                showStatus('Initializing OAuth client...', 'info');
+
+                // Initialize OAuth client
+                oauthClient = await BrowserOAuthClient.load({
+                    clientId,
+                    handleResolver: 'https://bsky.social'
+                });
+
+                console.log('OAuth client loaded successfully');
+
+                // Check if we're returning from OAuth callback
+                const result = await oauthClient.init();
+                console.log('OAuth init result:', result ? 'Session found' : 'No existing session');
+
+                if (result) {
+                    session = result.session;
+                    agent = new Agent(session);
+
+                    showStatus(`✓ Logged in as ${agent.did}`, 'success');
+
+                    elements.userInfo.innerHTML = `
+                        <strong>DID:</strong> ${agent.did}<br>
+                        <strong>Handle:</strong> ${result.session.sub || 'Unknown'}
+                    `;
+                    elements.userInfo.style.display = 'block';
+
+                    elements.loginBtn.style.display = 'none';
+                    elements.logoutBtn.style.display = 'inline-block';
+                    elements.scanCarBtn.style.display = 'inline-block';
+                    elements.handleInput.disabled = true;
+
+                    await loadCollections();
+                } else {
+                    hideStatus();
+                }
+            } catch (error) {
+                console.error('Init error:', error);
+                showStatus(`Initialization error: ${error.message}`, 'error');
+            }
+        }
+
+        async function downloadCar() {
+            elements.scanCarBtn.disabled = true;
+            elements.scanCarBtn.textContent = '⏳ Downloading...';
+            showStatus('Downloading repository as CAR file...', 'info');
+
+            try {
+                console.log('📥 Downloading repository...');
+
+                const response = await agent.com.atproto.sync.getRepo({
+                    did: agent.did
+                });
+
+                console.log(`✅ Downloaded ${response.data.byteLength} bytes`);
+
+                // Create a blob and download it
+                const blob = new Blob([response.data], { type: 'application/vnd.ipld.car' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const handle = agent.session?.handle || agent.did.split(':').pop();
+                a.download = `repo-${handle}-${timestamp}.car`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showStatus('✓ CAR file downloaded!', 'success');
+                elements.scanCarBtn.textContent = '📦 Download CAR';
+                elements.scanCarBtn.disabled = false;
+            } catch (error) {
+                console.error('Download error:', error);
+                showStatus(`Download failed: ${error.message}`, 'error');
+                elements.scanCarBtn.textContent = '❌ Download Failed';
+                setTimeout(() => {
+                    elements.scanCarBtn.textContent = '📦 Download CAR';
+                    elements.scanCarBtn.disabled = false;
+                }, 3000);
+            }
+        }
+
+        // Event handlers
+        elements.loginBtn.onclick = handleLogin;
+        elements.logoutBtn.onclick = handleLogout;
+        elements.scanCarBtn.onclick = downloadCar;
+        elements.handleInput.onkeypress = (e) => {
+            if (e.key === 'Enter') handleLogin();
+        };
+        elements.addCollectionBtn.onclick = addCustomCollection;
+        elements.customCollectionInput.onkeypress = (e) => {
+            if (e.key === 'Enter') addCustomCollection();
+        };
+        elements.copyBtn.onclick = () => {
+            if (currentRecord) {
+                navigator.clipboard.writeText(JSON.stringify(currentRecord, null, 2));
+                showStatus('JSON copied to clipboard!', 'success');
+                setTimeout(hideStatus, 2000);
+            }
+        };
+
+        // Initialize on page load
+        init();
+    </script>
+</body>
+</html>
