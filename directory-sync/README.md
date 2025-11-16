@@ -8,13 +8,13 @@ This utility demonstrates how to store entire directories in the AT Protocol blo
 2. **Upload**: Only uploads new or modified files to your Personal Data Server (PDS) as blobs
 3. **Skip Unchanged**: Files with matching CIDs are skipped, reusing previous blob references (no data transfer!)
 4. **Manifest**: A JSON manifest is created tracking all files, their paths, and blob references (CIDs)
-5. **Anchor**: The manifest is saved as a custom record (`ai.focus.sync.directory`) which anchors ALL blobs, making them retrievable
+5. **Anchor**: The manifest is saved as a custom record (`ai.thefocus.sync.directory`) which anchors ALL blobs, making them retrievable
 6. **Post**: A post is created for discoverability, referencing the custom record
 7. **Download**: The manifest is fetched from the custom record and used to reconstruct the original directory structure by downloading blobs via `com.atproto.sync.getBlob`
 
 ## Key Innovation: Custom Record Type for Blob Anchoring
 
-AT Protocol requires blobs to be "anchored" to records before they can be retrieved. This utility uses a **custom record type** (`ai.focus.sync.directory`) that references all uploaded blobs in a single record. This approach:
+AT Protocol requires blobs to be "anchored" to records before they can be retrieved. This utility uses a **custom record type** (`ai.thefocus.sync.directory`) that references all uploaded blobs in a single record. This approach:
 
 - ✅ **Anchors all blobs at once** - One record can hold references to multiple blobs
 - ✅ **Scales to many files** - Supports 15+ files (20-100MB total) in a single directory sync
@@ -42,7 +42,7 @@ npm run directory-sync upload ./my-documents
 This will:
 - Check for previous sync and calculate CIDs for all files
 - Upload only new or modified files (skips unchanged files!)
-- Create a custom record (`ai.focus.sync.directory`) anchoring all blobs
+- Create a custom record (`ai.thefocus.sync.directory`) anchoring all blobs
 - Create a post for discoverability referencing the record URI
 - Save a local manifest file (`{directory-name}-manifest.json`) for backup
 - Show you the Bluesky post URL and record URI
@@ -75,7 +75,7 @@ Example output:
 Found 2 directory sync records:
 
 1. my-documents
-   URI: at://did:plc:.../ai.focus.sync.directory/3m572snkmkb2a
+   URI: at://did:plc:.../ai.thefocus.sync.directory/3m572snkmkb2a
    Files: 15
    Size: 52000 bytes
    Created: 11/9/2025, 7:02:42 AM
@@ -96,7 +96,7 @@ npm run directory-sync download ./my-restored-files
 
 **Two arguments - download specific record by URI:**
 ```bash
-npm run directory-sync download at://did:plc:.../ai.focus.sync.directory/... ./restored
+npm run directory-sync download at://did:plc:.../ai.thefocus.sync.directory/... ./restored
 ```
 
 The download process:
@@ -117,7 +117,7 @@ Example:
 npm run directory-sync list
 
 # Delete a specific sync record
-npm run directory-sync delete at://did:plc:.../ai.focus.sync.directory/3m572snkmkb2a
+npm run directory-sync delete at://did:plc:.../ai.thefocus.sync.directory/3m572snkmkb2a
 ```
 
 **Important notes:**
@@ -141,7 +141,7 @@ npm run publish-viewer
 npm run viewer-url
 
 # Generate shareable URL for specific record
-npm run viewer-url at://did:plc:.../ai.focus.sync.directory/...
+npm run viewer-url at://did:plc:.../ai.thefocus.sync.directory/...
 ```
 
 The viewer features:
@@ -154,7 +154,7 @@ The viewer features:
 
 Example URL:
 ```
-https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:xxx&cid=bafkrei...#at://did:plc:xxx/ai.focus.sync.directory/...
+https://bsky.social/xrpc/com.atproto.sync.getBlob?did=did:plc:xxx&cid=bafkrei...#at://did:plc:xxx/ai.thefocus.sync.directory/...
 ```
 
 **How it works:**
@@ -173,7 +173,7 @@ Generate a standalone HTML file with embedded blob links:
 npm run web-links
 
 # Generate for specific record
-npm run web-links at://did:plc:.../ai.focus.sync.directory/...
+npm run web-links at://did:plc:.../ai.thefocus.sync.directory/...
 ```
 
 This creates a local HTML file with all file links pre-generated.
@@ -233,7 +233,7 @@ npm run directory-sync upload ./my-project
 ✅ **Incremental Upload** - Only uploads new/modified files, skips unchanged ones
 ✅ **Recursive Upload** - Handles nested directories automatically
 ✅ **MIME Type Detection** - Automatically sets correct content types
-✅ **Custom Record Storage** - Manifest stored as `ai.focus.sync.directory` record
+✅ **Custom Record Storage** - Manifest stored as `ai.thefocus.sync.directory` record
 ✅ **Record URI-based Download** - No local manifest file needed
 ✅ **Full Download Support** - Fetches and reconstructs all files
 ✅ **Post Integration** - Post created for discoverability
@@ -262,7 +262,7 @@ npm run directory-sync list
 npm run directory-sync download ./test-restore
 
 # Download specific version by URI
-npm run directory-sync download at://did:plc:.../ai.focus.sync.directory/3m572snkmkb2a ./test-restore
+npm run directory-sync download at://did:plc:.../ai.thefocus.sync.directory/3m572snkmkb2a ./test-restore
 ```
 
 ## Technical Details
@@ -271,7 +271,7 @@ npm run directory-sync download at://did:plc:.../ai.focus.sync.directory/3m572sn
 
 The utility implements smart incremental upload:
 
-1. **Fetch Previous Manifest**: Queries `ai.focus.sync.directory` collection for the most recent sync of the same directory
+1. **Fetch Previous Manifest**: Queries `ai.thefocus.sync.directory` collection for the most recent sync of the same directory
 2. **Calculate Local CIDs**: Uses `multiformats` library to calculate CIDv1 with raw codec and SHA-256 for each file
 3. **Compare CIDs**: Compares local CIDs with previous CIDs to detect changes
 4. **Skip Unchanged**: Files with matching CIDs reuse previous blob references (no upload!)
@@ -298,7 +298,7 @@ The manifest is stored as a custom record:
 
 ```typescript
 const record = {
-  $type: 'ai.focus.sync.directory',
+  $type: 'ai.thefocus.sync.directory',
   name: manifest.name,
   rootPath: manifest.rootPath,
   files: manifest.files,
@@ -308,7 +308,7 @@ const record = {
 
 await agent.com.atproto.repo.createRecord({
   repo: agent.session!.did,
-  collection: 'ai.focus.sync.directory',
+  collection: 'ai.thefocus.sync.directory',
   record: record,
 });
 ```

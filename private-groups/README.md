@@ -77,7 +77,7 @@ This approach is practical and builds on your existing codebase patterns.
 
 The implementation defines three record types:
 
-### 1. `ai.focus.groups.group`
+### 1. `ai.thefocus.groups.group`
 Defines a group with metadata.
 
 ```typescript
@@ -91,16 +91,16 @@ Defines a group with metadata.
 
 // Encryption key stored LOCALLY in .group-keys.json (NOT on ATProto):
 {
-  "at://did:plc:xxx/ai.focus.groups.group/abc123": "base64-encoded-key"
+  "at://did:plc:xxx/ai.thefocus.groups.group/abc123": "base64-encoded-key"
 }
 ```
 
-### 2. `ai.focus.groups.membership`
+### 2. `ai.thefocus.groups.membership`
 Links members to groups with roles and permissions.
 
 ```typescript
 {
-  groupUri: "at://did:plc:.../ai.focus.groups.group/abc123",
+  groupUri: "at://did:plc:.../ai.thefocus.groups.group/abc123",
   memberDid: "did:plc:xyz789",
   role: "admin" | "moderator" | "member",
   joinedAt: "2025-11-13T...",
@@ -112,12 +112,12 @@ Links members to groups with roles and permissions.
 }
 ```
 
-### 3. `ai.focus.groups.message`
+### 3. `ai.thefocus.groups.message`
 Messages posted to groups (encrypted for private groups).
 
 ```typescript
 {
-  groupUri: "at://did:plc:.../ai.focus.groups.group/abc123",
+  groupUri: "at://did:plc:.../ai.thefocus.groups.group/abc123",
   text: "Hello world", // or encrypted string
   isEncrypted: false,
   replyTo?: "at://...", // for threading

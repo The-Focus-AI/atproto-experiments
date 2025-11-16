@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "ai.focus.groups",
+  "id": "ai.thefocus.groups",
   "defs": {
     "group": {
       "type": "record",

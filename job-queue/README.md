@@ -39,7 +39,7 @@ Copy the URI from output.
 ### 3. Check Status
 
 ```bash
-npm run job-poster get at://did:plc:.../ai.focus.jobqueue.job/...
+npm run job-poster get at://did:plc:.../ai.thefocus.jobqueue.job/...
 npm run job-poster list
 ```
 
@@ -68,7 +68,7 @@ This creates a directory with:
      │◄───────(3)─────────┤                        │
      │                    │◄──────(4)──────────────┤
 
-(1) Create record: ai.focus.jobqueue.job (status: pending)
+(1) Create record: ai.thefocus.jobqueue.job (status: pending)
 (2) Listener polls repo.listRecords()
 (3) Poster reads record with repo.getRecord()
 (4) Worker updates record (status: working → success/failed)
@@ -76,11 +76,11 @@ This creates a directory with:
 
 ## Custom Lexicon
 
-The job records use a custom collection type: `ai.focus.jobqueue.job`
+The job records use a custom collection type: `ai.thefocus.jobqueue.job`
 
 ```json
 {
-  "$type": "ai.focus.jobqueue.job",
+  "$type": "ai.thefocus.jobqueue.job",
   "payload": {
     "type": "echo",
     "data": { "message": "test" }

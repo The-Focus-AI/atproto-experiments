@@ -174,7 +174,7 @@ Examples:
   npm run job-poster post job.json
 
   # Check status
-  npm run job-poster get at://did:plc:.../ai.focus.jobqueue.job/...
+  npm run job-poster get at://did:plc:.../ai.thefocus.jobqueue.job/...
 
   # List all jobs
   npm run job-poster list

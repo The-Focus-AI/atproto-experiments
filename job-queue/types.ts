@@ -2,7 +2,7 @@
  * Job Queue Types (Lexicon-based)
  */
 
-export const JOB_COLLECTION = 'ai.focus.jobqueue.job';
+export const JOB_COLLECTION = 'ai.thefocus.jobqueue.job';
 
 export interface JobPayload {
   type: string;
@@ -11,7 +11,7 @@ export interface JobPayload {
 }
 
 export interface JobRecord {
-  $type: 'ai.focus.jobqueue.job';
+  $type: 'ai.thefocus.jobqueue.job';
   payload: JobPayload;
   status: 'pending' | 'working' | 'success' | 'failed';
   createdAt: string;

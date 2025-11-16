@@ -88,7 +88,7 @@ async function getPreviousManifest(agent: BskyAgent, dirName: string): Promise<D
   try {
     const records = await agent.api.com.atproto.repo.listRecords({
       repo: agent.session!.did,
-      collection: 'ai.focus.sync.directory',
+      collection: 'ai.thefocus.sync.directory',
       limit: 50,
     });
 
@@ -206,7 +206,7 @@ async function saveManifest(agent: BskyAgent, manifest: DirectoryManifest): Prom
   // Create a custom record that anchors all the blobs
   // This makes them retrievable via com.atproto.sync.getBlob
   const record = {
-    $type: 'ai.focus.sync.directory',
+    $type: 'ai.thefocus.sync.directory',
     name: manifest.name,
     rootPath: manifest.rootPath,
     files: manifest.files,
@@ -217,7 +217,7 @@ async function saveManifest(agent: BskyAgent, manifest: DirectoryManifest): Prom
   // Write the custom record to the repository
   const recordResult = await agent.com.atproto.repo.createRecord({
     repo: agent.session!.did,
-    collection: 'ai.focus.sync.directory',
+    collection: 'ai.thefocus.sync.directory',
     record: record,
   });
 
@@ -249,7 +249,7 @@ async function loadManifestFromFile(manifestPath: string): Promise<DirectoryMani
 async function loadManifestFromRecord(agent: BskyAgent, recordUri: string): Promise<DirectoryManifest> {
   console.log(`\n📖 Loading manifest from record: ${recordUri}`);
 
-  // Parse AT URI: at://did:plc:abc123/ai.focus.sync.directory/abc123
+  // Parse AT URI: at://did:plc:abc123/ai.thefocus.sync.directory/abc123
   const uriParts = recordUri.replace('at://', '').split('/');
   const repo = uriParts[0];
   const collection = uriParts.slice(1, -1).join('.'); // Join all parts between repo and rkey
@@ -272,7 +272,7 @@ async function getLatestManifest(agent: BskyAgent): Promise<DirectoryManifest> {
 
   const records = await agent.api.com.atproto.repo.listRecords({
     repo: agent.session!.did,
-    collection: 'ai.focus.sync.directory',
+    collection: 'ai.thefocus.sync.directory',
     limit: 1,
     // Records are returned newest first by default
   });
@@ -413,7 +413,7 @@ async function main() {
 
     const records = await agent.api.com.atproto.repo.listRecords({
       repo: agent.session!.did,
-      collection: 'ai.focus.sync.directory',
+      collection: 'ai.thefocus.sync.directory',
       limit: 50,
     });
 
@@ -438,7 +438,7 @@ async function main() {
 
     console.log(`\n🗑️  Deleting directory sync record: ${path}`);
 
-    // Parse AT URI: at://did:plc:abc123/ai.focus.sync.directory/abc123
+    // Parse AT URI: at://did:plc:abc123/ai.thefocus.sync.directory/abc123
     const uriParts = path.replace('at://', '').split('/');
     const repo = uriParts[0];
     const collection = uriParts.slice(1, -1).join('.');
@@ -494,17 +494,17 @@ Examples:
   npm run directory-sync download ./my-restored-files
 
   # Download specific record by URI
-  npm run directory-sync download at://did:plc:.../ai.focus.sync.directory/... ./restored
+  npm run directory-sync download at://did:plc:.../ai.thefocus.sync.directory/... ./restored
 
   # List all synced directories (shows record URIs)
   npm run directory-sync list
 
   # Delete a synced directory record
-  npm run directory-sync delete at://did:plc:.../ai.focus.sync.directory/...
+  npm run directory-sync delete at://did:plc:.../ai.thefocus.sync.directory/...
 
 How it works:
   1. Upload: Walks through directory, uploads each file as a blob
-  2. Manifest: Creates a custom record (ai.focus.sync.directory) with all blob references
+  2. Manifest: Creates a custom record (ai.thefocus.sync.directory) with all blob references
   3. Anchor: Blobs are anchored to the record, making them retrievable
   4. Download: Fetches manifest from record and reconstructs directory structure
   5. Delete: Removes the manifest record (blobs are garbage collected if unreferenced)

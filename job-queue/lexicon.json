@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "ai.focus.jobqueue.job",
+  "id": "ai.thefocus.jobqueue.job",
   "defs": {
     "main": {
       "type": "record",

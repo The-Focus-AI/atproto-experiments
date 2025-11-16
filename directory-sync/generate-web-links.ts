@@ -37,7 +37,7 @@ interface DirectoryManifest {
 async function loadManifestFromRecord(agent: BskyAgent, recordUri: string): Promise<DirectoryManifest> {
   console.log(`\n📖 Loading manifest from record: ${recordUri}`);
 
-  // Parse AT URI: at://did:plc:abc123/ai.focus.sync.directory/abc123
+  // Parse AT URI: at://did:plc:abc123/ai.thefocus.sync.directory/abc123
   const uriParts = recordUri.replace('at://', '').split('/');
   const repo = uriParts[0];
   const collection = uriParts.slice(1, -1).join('.');
@@ -66,7 +66,7 @@ async function getLatestManifest(agent: BskyAgent): Promise<{ manifest: Director
 
   const records = await agent.api.com.atproto.repo.listRecords({
     repo: agent.session!.did,
-    collection: 'ai.focus.sync.directory',
+    collection: 'ai.thefocus.sync.directory',
     limit: 1,
   });
 

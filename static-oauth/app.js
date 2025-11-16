@@ -175,8 +175,8 @@ export class PDSExplorer {
             'app.bsky.graph.listitem',
             'chat.bsky.actor.declaration',
             // Custom Focus.AI collections
-            'ai.focus.sync.directory',
-            'ai.focus.viewer.template',
+            'ai.thefocus.sync.directory',
+            'ai.thefocus.viewer.template',
             'ai.thefocus.blog.article',
             'ai.thefocus.blog.site',
         ];

@@ -79,7 +79,7 @@ async function downloadBlobs(agent: BskyAgent, baseDir: string): Promise<number>
   const collectionsToScan = [
     'app.bsky.feed.post',
     'app.bsky.actor.profile',
-    'ai.focus.sync.directory',
+    'ai.thefocus.sync.directory',
     // Add more collections as needed
   ];
 
@@ -151,7 +151,7 @@ async function downloadBlobs(agent: BskyAgent, baseDir: string): Promise<number>
         }
 
         // Check for custom directory sync blobs
-        if (collection === 'ai.focus.sync.directory' && value.files) {
+        if (collection === 'ai.thefocus.sync.directory' && value.files) {
           for (const file of value.files) {
             let cid = file.blobRef?.ref?.$link || file.blobRef?.ref;
             if (cid && typeof cid === 'object' && cid.toString) cid = cid.toString();
