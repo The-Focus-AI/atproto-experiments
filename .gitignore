@@ -19,8 +19,14 @@ tests/fixtures/
 .DS_Store
 Thumbs.db
 
+# Legacy output directories (now in output/)
 firehose-blobs/
 pds-exports/
+
+# Centralized output directory (contains generated files and sensitive data)
+output/*
+!output/README.md
+!output/.gitkeep
 
 # Private group encryption keys (SENSITIVE - do not commit!)
 .group-keys.json

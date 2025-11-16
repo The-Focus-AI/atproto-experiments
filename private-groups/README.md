@@ -42,10 +42,10 @@ This approach is practical and builds on your existing codebase patterns.
 └─────────────────────────────────────┘
        │
        ▼
-┌─────────────────────────────────────┐
-│  Local Key Store (.group-keys.json) │
-│  - groupUri -> encryptionKey        │ ◄─── Stored locally, NOT on ATProto
-└─────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│  Local Key Store (output/private-groups/.group-keys.json) │
+│  - groupUri -> encryptionKey                        │ ◄─── Stored locally, NOT on ATProto
+└──────────────────────────────────────────────────────┘
        │
        ▼
 ┌─────────────────────────────────────┐
@@ -89,7 +89,7 @@ Defines a group with metadata.
   avatar?: BlobRef
 }
 
-// Encryption key stored LOCALLY in .group-keys.json (NOT on ATProto):
+// Encryption key stored LOCALLY in output/private-groups/.group-keys.json (NOT on ATProto):
 {
   "at://did:plc:xxx/ai.thefocus.groups.group/abc123": "base64-encoded-key"
 }
@@ -144,7 +144,7 @@ aBcD1234eFgH5678:xYz9876wVuT5432:Q2lwaGVydGV4dEhlcmU=
 
 ### Key Management
 - Each private group generates a random 256-bit key
-- Key is stored **locally in `.group-keys.json`** (NOT on ATProto)
+- Key is stored **locally in `output/private-groups/.group-keys.json`** (NOT on ATProto)
 - AppView must have access to the key store file to decrypt messages
 - Keys must be distributed to members via secure out-of-band channel (e.g., invite system, shared file)
 
@@ -160,13 +160,13 @@ aBcD1234eFgH5678:xYz9876wVuT5432:Q2lwaGVydGV4dEhlcmU=
 1. User calls `createGroup({ visibility: 'private' })`
 2. System generates random AES-256 key
 3. Group record created on ATProto (WITHOUT the key)
-4. Encryption key stored locally in `.group-keys.json`
+4. Encryption key stored locally in `output/private-groups/.group-keys.json`
 5. Membership record created for creator with `admin` role
 
 ### Posting a Message
 1. User calls `postMessage({ groupUri, text })`
 2. System fetches group record to check visibility
-3. If private: fetch key from local `.group-keys.json`
+3. If private: fetch key from local `output/private-groups/.group-keys.json`
 4. Encrypt text with group's key
 5. Create message record with `isEncrypted: true`
 6. Store in author's PDS repo
@@ -174,7 +174,7 @@ aBcD1234eFgH5678:xYz9876wVuT5432:Q2lwaGVydGV4dEhlcmU=
 ### Reading Messages
 1. AppView queries all members' repos for messages
 2. Filters messages matching `groupUri`
-3. Fetches encryption key from local `.group-keys.json`
+3. Fetches encryption key from local `output/private-groups/.group-keys.json`
 4. Decrypts messages if encrypted
 5. Returns decrypted text to UI
 
@@ -261,7 +261,7 @@ npm run private-groups
 To make this production-ready, you'd need an AppView server that:
 
 1. **Polls the firehose** for group records and messages
-2. **Manages the local key store** (`.group-keys.json` or database)
+2. **Manages the local key store** (`output/private-groups/.group-keys.json` or database)
 3. **Distributes keys securely** to authorized members (e.g., via invite system)
 4. **Checks membership** before serving messages
 5. **Decrypts messages** server-side before sending to clients
@@ -269,7 +269,7 @@ To make this production-ready, you'd need an AppView server that:
 
 See the `/website` and `/job-queue` examples in this repo for AppView patterns.
 
-**Important**: The `.group-keys.json` file should be:
+**Important**: The `output/private-groups/.group-keys.json` file should be:
 - Backed up securely (loss = permanent data loss)
 - Protected with appropriate file permissions
 - Shared only with trusted AppView instances

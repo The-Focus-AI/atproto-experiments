@@ -232,8 +232,12 @@ async function saveManifest(agent: BskyAgent, manifest: DirectoryManifest): Prom
   console.log(`📝 Post created: ${post.uri}`);
   console.log(`   View at: https://bsky.app/profile/${agent.session?.handle}/post/${post.uri.split('/').pop()}`);
 
-  // Also save manifest to local file
-  const manifestPath = `${manifest.name}-manifest.json`;
+  // Also save manifest to local file in output directory
+  const outputDir = join(process.cwd(), 'output', 'directory-sync');
+  if (!existsSync(outputDir)) {
+    mkdirSync(outputDir, { recursive: true });
+  }
+  const manifestPath = join(outputDir, `${manifest.name}-manifest.json`);
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
   console.log(`📄 Local manifest: ${manifestPath}`);
 

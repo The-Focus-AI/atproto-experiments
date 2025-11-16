@@ -6,6 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 
+const DEFAULT_KEY_DIR = 'output/private-groups';
 const DEFAULT_KEY_FILE = '.group-keys.json';
 
 interface KeyStore {
@@ -17,7 +18,16 @@ export class FileKeyStore {
   private keys: KeyStore;
 
   constructor(keyFile?: string) {
-    this.keyFile = keyFile || path.join(process.cwd(), DEFAULT_KEY_FILE);
+    if (keyFile) {
+      this.keyFile = keyFile;
+    } else {
+      // Use centralized output directory
+      const keyDir = path.join(process.cwd(), DEFAULT_KEY_DIR);
+      if (!fs.existsSync(keyDir)) {
+        fs.mkdirSync(keyDir, { recursive: true });
+      }
+      this.keyFile = path.join(keyDir, DEFAULT_KEY_FILE);
+    }
     this.keys = this.loadKeys();
   }
 

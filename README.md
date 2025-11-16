@@ -125,10 +125,10 @@ Download and unpack your entire Personal Data Server repository as JSON files.
 npm run pds-sync
 
 # List contents
-npm run pds-sync list pds-exports/repo-*.car
+npm run pds-sync list output/pds-exports/repo-*.car
 
 # Unpack specific export
-npm run pds-sync unpack pds-exports/repo-*.car
+npm run pds-sync unpack output/pds-exports/repo-*.car
 ```
 
 **Features:**
@@ -146,7 +146,7 @@ npm run pds-sync unpack pds-exports/repo-*.car
 Real-time media downloading from the Bluesky firehose.
 
 ```bash
-# Download all media (default: ./firehose-blobs)
+# Download all media (default: ./output/firehose)
 npm run firehose
 
 # Custom output directory
@@ -392,6 +392,30 @@ Test files cover:
 - [AT Protocol API Docs](https://docs.bsky.app)
 - [Bluesky](https://bsky.app)
 - [@atproto/api on npm](https://www.npmjs.com/package/@atproto/api)
+
+---
+
+## Output Directory
+
+All tools write their output to the centralized `output/` directory:
+
+```
+output/
+├── firehose/          # Firehose blob downloads
+│   ├── images/        # Downloaded images
+│   ├── videos/        # Downloaded videos
+│   └── metadata/      # Blob metadata JSON files
+├── pds-exports/       # PDS repository exports
+│   └── repo-*.car     # CAR files and unpacked directories
+├── directory-sync/    # Directory sync manifests
+│   └── *-manifest.json
+└── private-groups/    # Private group data (sensitive)
+    └── .group-keys.json
+```
+
+This directory is gitignored (except for the README). Clean it periodically to free disk space.
+
+---
 
 ## License
 

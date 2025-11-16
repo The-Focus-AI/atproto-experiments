@@ -16,10 +16,10 @@ npm run pds-sync
 npm run pds-sync download
 
 # List contents of a CAR file
-npm run pds-sync list pds-exports/repo-*.car
+npm run pds-sync list output/pds-exports/repo-*.car
 
 # Unpack an existing CAR file
-npm run pds-sync unpack pds-exports/repo-*.car
+npm run pds-sync unpack output/pds-exports/repo-*.car
 
 # Sync a specific DID
 npm run pds-sync did:plc:abc123
@@ -30,7 +30,7 @@ npm run pds-sync did:plc:abc123
 The tool creates an organized directory structure:
 
 ```
-pds-exports/repo-{handle}-{timestamp}/
+output/pds-exports/repo-{handle}-{timestamp}/
 ├── _metadata.json                    # Export metadata
 ├── _complete.json                    # Complete export in one file
 ├── _blobs/                           # Downloaded blobs (images, files)
@@ -66,7 +66,7 @@ npm run pds-sync
 ### Analyze Your Data
 ```bash
 npm run pds-sync
-cd pds-exports/repo-yourhandle-*/
+cd output/pds-exports/repo-yourhandle-*/
 # Browse JSON files to see your posts, follows, etc.
 ```
 

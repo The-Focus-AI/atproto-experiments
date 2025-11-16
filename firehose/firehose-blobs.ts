@@ -40,7 +40,7 @@ interface BlobInfo {
 
 // Parse command line arguments
 const args = process.argv.slice(2);
-const outputDir = args.find(arg => !arg.startsWith('--')) || './firehose-blobs';
+const outputDir = args.find(arg => !arg.startsWith('--')) || './output/firehose';
 const limitArg = args.find(arg => arg.startsWith('--limit='));
 const limit = limitArg ? parseInt(limitArg.split('=')[1]) : null;
 const imagesOnly = args.includes('--images-only');

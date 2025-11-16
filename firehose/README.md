@@ -9,7 +9,7 @@ This tool streams from Bluesky's public firehose using the `@atproto/sync` libra
 ## Usage
 
 ```bash
-# Download all media to default directory (./firehose-blobs)
+# Download all media to default directory (./output/firehose)
 npm run firehose
 
 # Specify custom output directory
@@ -39,7 +39,7 @@ npm run firehose -- --videos-only
 ## Output Structure
 
 ```
-firehose-blobs/
+output/firehose/
 ├── images/
 │   ├── bafkrei...jpg                 # Image files
 │   ├── bafkrei...png
@@ -47,7 +47,9 @@ firehose-blobs/
 ├── videos/
 │   ├── bafkrei...mp4                 # Video files
 │   └── ...
-└── metadata.json                     # Metadata for all downloads
+└── metadata/
+    ├── bafkrei...json                # Metadata for each download
+    └── ...
 ```
 
 ## Use Cases

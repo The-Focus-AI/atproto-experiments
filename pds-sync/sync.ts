@@ -50,7 +50,7 @@ async function downloadRepo(agent: BskyAgent, did?: string): Promise<string> {
   console.log(`✅ Downloaded ${repo.data.byteLength} bytes`);
 
   // Create export directory
-  const exportDir = join(process.cwd(), 'pds-exports');
+  const exportDir = join(process.cwd(), 'output', 'pds-exports');
   if (!existsSync(exportDir)) {
     mkdirSync(exportDir, { recursive: true });
   }
