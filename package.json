@@ -11,6 +11,7 @@
     "pds-sync": "tsx pds-sync/sync.ts",
     "pds-server": "cd pds-server && npx tsx server.ts",
     "firehose-blobs": "tsx firehose-blobs/firehose-blobs.ts",
+    "firehose-filter": "tsx firehose-filter/firehose-filter.ts",
     "markdown-sync": "tsx markdown-sync/markdown-sync.ts",
     "job-poster": "tsx job-queue/poster.ts",
     "job-listener": "tsx job-queue/listener.ts",
