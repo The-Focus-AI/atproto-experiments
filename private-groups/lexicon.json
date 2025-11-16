@@ -1,0 +1,135 @@
+{
+  "lexicon": 1,
+  "id": "ai.focus.groups",
+  "defs": {
+    "group": {
+      "type": "record",
+      "description": "A private group definition",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["name", "visibility", "createdAt"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Display name of the group",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "description": "Group description",
+            "maxLength": 500
+          },
+          "visibility": {
+            "type": "string",
+            "enum": ["public", "private"],
+            "description": "Whether group and its messages are public or members-only"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "avatar": {
+            "type": "blob",
+            "accept": ["image/png", "image/jpeg"],
+            "maxSize": 1000000
+          }
+        }
+      }
+    },
+    "membership": {
+      "type": "record",
+      "description": "Group membership record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["groupUri", "memberDid", "role", "joinedAt"],
+        "properties": {
+          "groupUri": {
+            "type": "string",
+            "description": "AT-URI of the group record"
+          },
+          "memberDid": {
+            "type": "string",
+            "description": "DID of the member"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "moderator", "member"],
+            "description": "Member's role in the group"
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "permissions": {
+            "type": "object",
+            "properties": {
+              "canPost": { "type": "boolean" },
+              "canInvite": { "type": "boolean" },
+              "canModerate": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    },
+    "message": {
+      "type": "record",
+      "description": "A message in a group (encrypted for private groups)",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["groupUri", "createdAt"],
+        "properties": {
+          "groupUri": {
+            "type": "string",
+            "description": "AT-URI of the group this message belongs to"
+          },
+          "text": {
+            "type": "string",
+            "description": "Message text (encrypted if private group)",
+            "maxLength": 10000
+          },
+          "isEncrypted": {
+            "type": "boolean",
+            "description": "Whether the text field is encrypted"
+          },
+          "replyTo": {
+            "type": "string",
+            "description": "AT-URI of message being replied to"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "blob",
+              "accept": ["image/*", "video/*"],
+              "maxSize": 5000000
+            }
+          },
+          "facets": {
+            "type": "array",
+            "description": "Rich text facets (mentions, links, etc)",
+            "items": {
+              "type": "ref",
+              "ref": "app.bsky.richtext.facet"
+            }
+          }
+        }
+      }
+    },
+    "publicPost": {
+      "type": "record",
+      "description": "A public post (uses standard Bluesky feed post)",
+      "key": "tid",
+      "record": {
+        "type": "ref",
+        "ref": "app.bsky.feed.post",
+        "description": "Standard Bluesky post for public content"
+      }
+    }
+  }
+}

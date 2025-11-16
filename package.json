@@ -14,6 +14,7 @@
     "markdown-sync": "tsx markdown-sync/markdown-sync.ts",
     "job-poster": "tsx job-queue/poster.ts",
     "job-listener": "tsx job-queue/listener.ts",
+    "private-groups": "tsx private-groups/example-usage.ts",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

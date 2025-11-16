@@ -21,3 +21,6 @@ Thumbs.db
 
 firehose-blobs/
 pds-exports/
+
+# Private group encryption keys (SENSITIVE - do not commit!)
+.group-keys.json
