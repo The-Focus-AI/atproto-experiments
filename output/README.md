@@ -23,7 +23,7 @@ output/
 
 Each tool automatically writes to its subdirectory under `output/`:
 
-- **Firehose**: `npm run firehose` writes to `output/firehose/`
+- **Firehose Blobs**: `npm run firehose-blobs` writes to `output/firehose/`
 - **PDS Sync**: `npm run pds-sync` writes to `output/pds-exports/`
 - **Directory Sync**: `npm run directory-sync upload` writes manifests to `output/directory-sync/`
 - **Private Groups**: Encryption keys stored in `output/private-groups/`

@@ -20,7 +20,6 @@ tests/fixtures/
 Thumbs.db
 
 # Legacy output directories (now in output/)
-firehose-blobs/
 pds-exports/
 
 # Centralized output directory (contains generated files and sensitive data)
