@@ -172,6 +172,62 @@ npm run firehose-blobs ./my-media --images-only --limit=50
 
 ---
 
+### 🔍 [Firehose Filter](firehose-filter/)
+
+Subscribe to the full AT Protocol firehose and filter for specific collections (e.g., private groups records).
+
+```bash
+# Filter for ai.thefocus.groups.* records
+npm run firehose-filter
+
+# Limit to first 100 records
+npm run firehose-filter -- --limit=100
+
+# Only group definitions
+npm run firehose-filter -- --groups
+```
+
+**Features:**
+- Full firehose via `@atproto/sync`
+- Client-side collection filtering
+- JSON database with deduplication
+- Auto-save every 10 records
+
+**Use cases:** Custom record indexing, application-specific data collection, protocol research
+
+---
+
+### ⚡ [Jetstream Filter](jetstream-filter/)
+
+Lightweight alternative to firehose using Jetstream's JSON WebSocket API.
+
+```bash
+# Filter for ai.thefocus.groups.* records
+npm run jetstream-filter
+
+# Resume from last position
+npm run jetstream-filter
+
+# Only messages
+npm run jetstream-filter -- --messages
+```
+
+**Features:**
+- **Simpler protocol** - Plain JSON (no CBOR/CAR decoding)
+- **Server-side filtering** - Collections filtered at source via `wantedCollections`
+- **Cursor support** - Resume from last position using microsecond timestamps
+- **Auto-reconnect** - Handles connection drops gracefully
+- **No auth required** - Freely accessible public endpoints
+
+**Advantages over firehose:**
+- Less bandwidth and processing overhead
+- Easier to consume with standard JSON tooling
+- Built-in replay/resume capabilities
+
+**Use cases:** Real-time indexing, lightweight monitoring, custom app data collection, protocol experimentation
+
+---
+
 ### 🖥️ [PDS Server](pds-server/)
 
 Run your own AT Protocol Personal Data Server locally without Docker.
@@ -401,16 +457,18 @@ All tools write their output to the centralized `output/` directory:
 
 ```
 output/
-├── firehose/          # Firehose blob downloads
-│   ├── images/        # Downloaded images
-│   ├── videos/        # Downloaded videos
-│   └── metadata/      # Blob metadata JSON files
-├── pds-exports/       # PDS repository exports
-│   └── repo-*.car     # CAR files and unpacked directories
-├── directory-sync/    # Directory sync manifests
+├── firehose/                    # Firehose blob downloads
+│   ├── images/                  # Downloaded images
+│   ├── videos/                  # Downloaded videos
+│   └── metadata/                # Blob metadata JSON files
+├── pds-exports/                 # PDS repository exports
+│   └── repo-*.car               # CAR files and unpacked directories
+├── directory-sync/              # Directory sync manifests
 │   └── *-manifest.json
-└── private-groups/    # Private group data (sensitive)
-    └── .group-keys.json
+├── private-groups/              # Private group data (sensitive)
+│   └── .group-keys.json
+├── private-groups-db.json       # Firehose filter database
+└── private-groups-jetstream.json # Jetstream filter database
 ```
 
 This directory is gitignored (except for the README). Clean it periodically to free disk space.
