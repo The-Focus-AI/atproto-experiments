@@ -46,3 +46,15 @@ Being able to store -- and write -- data into the PDS from the browser blows ope
 ---
 
 So many possiblities with #atproto !
+
+---
+
+Added [firehose-filter](https://github.com/The-Focus-AI/atproto-experiments/tree/main/firehose-filter) which subscribes to the frehose and pulls out interesting events
+
+---
+
+And [jetstream-filter](https://github.com/The-Focus-AI/atproto-experiments/tree/main/jetstream-filter) which does some of the same.
+
+---
+
+[private-groups](https://github.com/The-Focus-AI/atproto-experiments/tree/main/private-groups) is an experiment with having a group key to read/write group messages.  Thinking about a bluesky forum.
